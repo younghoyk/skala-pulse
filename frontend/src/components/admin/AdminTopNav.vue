@@ -1,11 +1,11 @@
 <script setup>
 defineProps({
-  active: { type: String, required: true }, // 'dashboard' | 'kanban'
+  active: { type: String, required: true }, // 'dashboard' | 'improvements'
 })
 
 const links = [
   { key: 'dashboard', label: '대시보드', to: { name: 'admin-dashboard' } },
-  { key: 'kanban', label: '칸반 보드', to: { name: 'admin-kanban' } },
+  { key: 'improvements', label: '개선 과제', to: { name: 'admin-improvements' } },
 ]
 </script>
 
