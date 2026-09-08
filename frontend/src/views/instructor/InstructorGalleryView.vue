@@ -5,9 +5,7 @@ import { useInstructorCourseStore } from '@/stores/instructorCourse'
 import { mockInstructorCourses } from '@/data/mockInstructorData'
 import { mockInstructorFeedbackByCourse } from '@/data/mockInstructorFeedback'
 import InstructorNav from '@/components/instructor/InstructorNav.vue'
-import KeywordGraphCard from '@/components/dashboard/KeywordGraphCard.vue'
 import FeedbackGalleryCard from '@/components/dashboard/FeedbackGalleryCard.vue'
-import ActionMemoCard from '@/components/dashboard/ActionMemoCard.vue'
 
 const router = useRouter()
 const courseStore = useInstructorCourseStore()
@@ -25,21 +23,15 @@ onMounted(() => {
     <div class="mx-auto max-w-3xl">
       <div class="mb-4">
         <p class="text-xs font-medium text-muted-foreground">{{ data.className }}</p>
-        <h1 class="text-xl font-bold text-foreground">{{ data.courseName }} · 피드백</h1>
+        <h1 class="text-xl font-bold text-foreground">{{ data.courseName }} · 피드백 갤러리</h1>
         <RouterLink :to="{ name: 'instructor-courses' }" class="text-xs underline" style="color: var(--role-instructor)">
           다른 강의 선택
         </RouterLink>
       </div>
 
-      <InstructorNav active="feedbacks" />
+      <InstructorNav active="gallery" />
 
-      <div class="flex flex-col gap-5">
-        <KeywordGraphCard :graph="feedback.keywordGraph" :positions="feedback.nodePositions" />
-        <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
-          <FeedbackGalleryCard :items="feedback.feedbackGallery" />
-          <ActionMemoCard />
-        </div>
-      </div>
+      <FeedbackGalleryCard :items="feedback.feedbackGallery" />
     </div>
   </div>
 </template>

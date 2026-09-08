@@ -76,7 +76,7 @@ export const mockInstructorFeedbackByCourse = {
       'pace-slow': { x: 300, y: 340 },
     },
     feedbackGallery: [
-      { id: 'g1', tags: ['소통 많음'], summary: '질문에 바로바로 답해주셔서 좋았어요' },
+      { id: 'g1', tags: ['소통 많음'], summary: '모르는 부분을 편하게 물어볼 수 있는 분위기였어요' },
       { id: 'g2', tags: ['자료 많음'], summary: '예제 코드가 많아서 이해하기 쉬웠어요' },
       { id: 'g3', tags: [], summary: '전반적으로 만족스러운 수업이었어요' },
       { id: 'g4', tags: ['속도 느림'], summary: '가끔 진도가 너무 천천히 나가는 느낌이었어요' },

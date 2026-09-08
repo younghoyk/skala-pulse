@@ -1,11 +1,12 @@
 <script setup>
 defineProps({
-  active: { type: String, required: true }, // 'dashboard' | 'feedbacks'
+  active: { type: String, required: true }, // 'dashboard' | 'keywords' | 'gallery'
 })
 
 const links = [
   { key: 'dashboard', label: '대시보드', to: { name: 'admin-dashboard' } },
-  { key: 'feedbacks', label: '피드백 · 키워드', to: { name: 'admin-feedbacks' } },
+  { key: 'keywords', label: '키워드', to: { name: 'admin-keywords' } },
+  { key: 'gallery', label: '피드백 갤러리', to: { name: 'admin-gallery' } },
 ]
 </script>
 

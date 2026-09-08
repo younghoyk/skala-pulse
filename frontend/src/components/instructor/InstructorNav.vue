@@ -1,11 +1,13 @@
 <script setup>
 defineProps({
-  active: { type: String, required: true }, // 'dashboard' | 'feedbacks'
+  active: { type: String, required: true }, // 'dashboard' | 'keywords' | 'gallery' | 'memo'
 })
 
 const links = [
   { key: 'dashboard', label: '대시보드', to: { name: 'instructor-dashboard' } },
-  { key: 'feedbacks', label: '피드백 · 키워드', to: { name: 'instructor-feedbacks' } },
+  { key: 'keywords', label: '키워드', to: { name: 'instructor-keywords' } },
+  { key: 'gallery', label: '피드백 갤러리', to: { name: 'instructor-gallery' } },
+  { key: 'memo', label: '액션 메모', to: { name: 'instructor-memo' } },
 ]
 </script>
 

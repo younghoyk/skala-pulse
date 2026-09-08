@@ -1,26 +1,18 @@
 <script setup>
 import { computed, ref } from 'vue'
-import { mockAdminFeedbackByCourse, mergeKeywordGraphs } from '@/data/mockAdminFeedback'
+import { mockAdminFeedbackByCourse } from '@/data/mockAdminFeedback'
 import AdminNav from '@/components/admin/AdminNav.vue'
-import KeywordGraphCard from '@/components/dashboard/KeywordGraphCard.vue'
 import FeedbackGalleryCard from '@/components/dashboard/FeedbackGalleryCard.vue'
 
 const courseNames = Object.keys(mockAdminFeedbackByCourse)
 const selectedCourse = ref('전체')
 
-const merged = computed(() => mergeKeywordGraphs(courseNames.map((name) => mockAdminFeedbackByCourse[name].keywordGraph)))
-
-const activeGraph = computed(() =>
-  selectedCourse.value === '전체' ? merged.value.graph : mockAdminFeedbackByCourse[selectedCourse.value].keywordGraph,
-)
-const activePositions = computed(() =>
-  selectedCourse.value === '전체'
-    ? merged.value.positions
-    : mockAdminFeedbackByCourse[selectedCourse.value].nodePositions,
-)
+// "전체"일 때만 과목 라벨을 붙인다 — 과목 하나만 볼 땐 헤더에 이미 나와있어서 중복 표시 안 함.
 const activeGallery = computed(() =>
   selectedCourse.value === '전체'
-    ? courseNames.flatMap((name) => mockAdminFeedbackByCourse[name].feedbackGallery)
+    ? courseNames.flatMap((name) =>
+        mockAdminFeedbackByCourse[name].feedbackGallery.map((item) => ({ ...item, courseName: name })),
+      )
     : mockAdminFeedbackByCourse[selectedCourse.value].feedbackGallery,
 )
 </script>
@@ -30,11 +22,11 @@ const activeGallery = computed(() =>
     <div class="mx-auto max-w-3xl">
       <div class="mb-1">
         <p class="text-xs font-medium text-muted-foreground">시스템 관리자</p>
-        <h1 class="text-xl font-bold text-foreground">전체 과정 피드백</h1>
+        <h1 class="text-xl font-bold text-foreground">전체 과정 피드백 갤러리</h1>
       </div>
       <p class="mb-5 text-xs text-muted-foreground">과목별로 필터링해서 볼 수 있습니다.</p>
 
-      <AdminNav active="feedbacks" />
+      <AdminNav active="gallery" />
 
       <div class="mb-5">
         <select
@@ -46,10 +38,7 @@ const activeGallery = computed(() =>
         </select>
       </div>
 
-      <div class="flex flex-col gap-5">
-        <KeywordGraphCard :key="selectedCourse" :graph="activeGraph" :positions="activePositions" />
-        <FeedbackGalleryCard :items="activeGallery" />
-      </div>
+      <FeedbackGalleryCard :items="activeGallery" />
     </div>
   </div>
 </template>
