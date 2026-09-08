@@ -1,16 +1,14 @@
 <script setup>
-import { computed } from 'vue'
-import { mockAdminClasses } from '@/data/mockAdminOverview'
-import ClassOverviewRow from '@/components/dashboard/ClassOverviewRow.vue'
+import { useRouter } from 'vue-router'
+import { groupClassesByCourse } from '@/data/mockAdminOverview'
 import AdminNav from '@/components/admin/AdminNav.vue'
 
-// 하이라이트는 계산이 아니라 정렬로만 만든다 — 하락폭이 큰 반이 위로 올라올 뿐,
-// "왜" 떨어졌는지는 이 화면에서 말하지 않는다 (cause-diagnosis-logic 원칙).
-const sortedClasses = computed(() =>
-  [...mockAdminClasses].sort(
-    (a, b) => a.currentAvg - a.previousAvg - (b.currentAvg - b.previousAvg),
-  ),
-)
+const router = useRouter()
+const courses = groupClassesByCourse()
+
+function openCourse(courseId) {
+  router.push({ name: 'admin-course-detail', params: { courseId } })
+}
 </script>
 
 <template>
@@ -20,12 +18,26 @@ const sortedClasses = computed(() =>
         <p class="text-xs font-medium text-muted-foreground">시스템 관리자</p>
         <h1 class="text-xl font-bold text-foreground">전체 과정 통합 대시보드</h1>
       </div>
-      <p class="mb-5 text-xs text-muted-foreground">지난 기간 대비 하락폭이 큰 반부터 정렬했습니다.</p>
+      <p class="mb-5 text-xs text-muted-foreground">강의를 선택하면 그 안의 반들을 비교할 수 있습니다.</p>
 
       <AdminNav active="dashboard" />
 
       <div class="flex flex-col gap-2.5">
-        <ClassOverviewRow v-for="c in sortedClasses" :key="c.id" :class-data="c" />
+        <button
+          v-for="course in courses"
+          :key="course.courseId"
+          type="button"
+          class="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3.5 text-left transition hover:shadow-sm"
+          @click="openCourse(course.courseId)"
+        >
+          <div>
+            <p class="text-sm font-semibold text-foreground">{{ course.courseName }}</p>
+            <p class="mt-0.5 text-xs text-muted-foreground">{{ course.classes.length }}개 반</p>
+          </div>
+          <span class="text-xs text-muted-foreground">
+            제출 {{ course.submission.submitted }}명 / {{ course.submission.total }}명
+          </span>
+        </button>
       </div>
     </div>
   </div>
