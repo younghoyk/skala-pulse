@@ -3,6 +3,7 @@ import LoginView from '@/views/LoginView.vue'
 import SurveyRunnerView from '@/views/survey/SurveyRunnerView.vue'
 import SurveyCompleteView from '@/views/survey/SurveyCompleteView.vue'
 import InstructorDashboardView from '@/views/instructor/InstructorDashboardView.vue'
+import InstructorFeedbacksView from '@/views/instructor/InstructorFeedbacksView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -12,6 +13,7 @@ const router = createRouter({
     { path: '/survey/:id', name: 'survey', component: SurveyRunnerView, props: true },
     { path: '/survey/complete', name: 'survey-complete', component: SurveyCompleteView },
     { path: '/instructor/dashboard', name: 'instructor-dashboard', component: InstructorDashboardView },
+    { path: '/instructor/feedbacks', name: 'instructor-feedbacks', component: InstructorFeedbacksView },
   ],
 })
 
