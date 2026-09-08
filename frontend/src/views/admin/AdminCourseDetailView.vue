@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import { mockAdminClasses, aggregateRankItems } from '@/data/mockAdminOverview'
 import ScoreBarsCard from '@/components/dashboard/ScoreBarsCard.vue'
 import RankLeaderboardCard from '@/components/dashboard/RankLeaderboardCard.vue'
+import AdminCourseNav from '@/components/admin/AdminCourseNav.vue'
 
 const route = useRoute()
 
@@ -40,6 +41,8 @@ const courseRankItems = computed(() => aggregateRankItems(classes.value))
           전체 강의 목록으로
         </RouterLink>
       </div>
+
+      <AdminCourseNav :course-id="route.params.courseId" active="dashboard" />
 
       <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
         <ScoreBarsCard :bars="scoreBars" />

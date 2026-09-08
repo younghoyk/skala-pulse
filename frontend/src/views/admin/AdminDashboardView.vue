@@ -1,7 +1,6 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import { groupClassesByCourse } from '@/data/mockAdminOverview'
-import AdminNav from '@/components/admin/AdminNav.vue'
 
 const router = useRouter()
 const courses = groupClassesByCourse()
@@ -19,8 +18,6 @@ function openCourse(courseId) {
         <h1 class="text-xl font-bold text-foreground">전체 과정 통합 대시보드</h1>
       </div>
       <p class="mb-5 text-xs text-muted-foreground">강의를 선택하면 그 안의 반들을 비교할 수 있습니다.</p>
-
-      <AdminNav active="dashboard" />
 
       <div class="flex flex-col gap-2.5">
         <button
