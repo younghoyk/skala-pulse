@@ -1,4 +1,5 @@
 <script setup>
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useSurveyStore } from '@/stores/survey'
@@ -7,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 const router = useRouter()
 const auth = useAuthStore()
 const surveyStore = useSurveyStore()
+const hoveredKey = ref(null)
 
 const roles = [
   {
@@ -14,6 +16,7 @@ const roles = [
     label: '교육생',
     sub: 'Student',
     desc: '수강 중인 수업의 설문에 참여합니다',
+    accentVar: '--role-student',
     enabled: true,
   },
   {
@@ -21,23 +24,29 @@ const roles = [
     label: '교수자 / 매니저',
     sub: 'Instructor',
     desc: '담당 클래스 분석 대시보드를 확인합니다',
-    enabled: false,
+    accentVar: '--role-instructor',
+    enabled: true,
   },
   {
     key: 'admin',
     label: '시스템 관리자',
     sub: 'Super Admin',
     desc: '전체 과정과 설문을 총괄합니다',
+    accentVar: '--role-admin',
     enabled: false,
   },
 ]
 
 function handleDemoLogin(role) {
-  if (role.key !== 'student') return
-  auth.loginAsDemo('student', '데모 교육생')
-  const firstSurveyId = surveyStore.nextPendingSurveyId
-  if (firstSurveyId) {
-    router.push({ name: 'survey', params: { id: firstSurveyId } })
+  if (!role.enabled) return
+
+  if (role.key === 'student') {
+    auth.loginAsDemo('student', '데모 교육생')
+    const firstSurveyId = surveyStore.nextPendingSurveyId
+    if (firstSurveyId) router.push({ name: 'survey', params: { id: firstSurveyId } })
+  } else if (role.key === 'instructor') {
+    auth.loginAsDemo('instructor', '데모 교수자')
+    router.push({ name: 'instructor-dashboard' })
   }
 }
 </script>
@@ -60,11 +69,10 @@ function handleDemoLogin(role) {
           type="button"
           :disabled="!role.enabled"
           class="flex items-center justify-between rounded-lg border bg-card px-4 py-3.5 text-left transition"
-          :class="
-            role.enabled
-              ? 'cursor-pointer border-border hover:border-[var(--role-student)] hover:shadow-sm'
-              : 'cursor-not-allowed opacity-60'
-          "
+          :class="role.enabled ? 'cursor-pointer hover:shadow-sm' : 'cursor-not-allowed border-border opacity-60'"
+          :style="role.enabled ? { borderColor: hoveredKey === role.key ? `var(${role.accentVar})` : 'var(--border)' } : {}"
+          @mouseenter="hoveredKey = role.key"
+          @mouseleave="hoveredKey = null"
           @click="handleDemoLogin(role)"
         >
           <div>
@@ -80,7 +88,7 @@ function handleDemoLogin(role) {
           <span
             v-else
             class="shrink-0 rounded-md px-2.5 py-1 text-xs font-medium text-white"
-            style="background: var(--role-student)"
+            :style="{ background: `var(${role.accentVar})` }"
           >
             데모로 시작
           </span>

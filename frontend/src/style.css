@@ -123,6 +123,8 @@
     --role-instructor-soft: #faecd6;
     --role-admin: #574bd0;
     --role-admin-soft: #eae7fb;
+    --danger: #b3413e;
+    --danger-soft: #fbe4e3;
 }
 
 .dark {
@@ -132,6 +134,8 @@
     --role-instructor-soft: #3a2a10;
     --role-admin: #9a90f2;
     --role-admin-soft: #2a2555;
+    --danger: #e58581;
+    --danger-soft: #3d201f;
 }
 
 @layer base {
