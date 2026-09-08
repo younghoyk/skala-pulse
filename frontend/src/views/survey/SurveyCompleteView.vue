@@ -47,7 +47,7 @@ function continueToNext() {
         </Button>
       </template>
       <template v-else>
-        <p class="text-sm font-medium text-foreground">모든 설문을 제출했어요. 다음 주에 만나요!</p>
+        <p class="text-sm font-medium text-foreground">모든 설문을 제출했어요. 수고하셨어요!</p>
       </template>
     </div>
   </div>

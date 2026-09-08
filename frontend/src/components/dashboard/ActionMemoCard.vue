@@ -22,7 +22,7 @@ function onEdit() {
     <textarea
       v-model="memo"
       rows="4"
-      placeholder="예: 다음 주부터 실습 세션을 30분 늘려본다"
+      placeholder="예: 다음 기수부터 실습 세션을 30분 늘려본다"
       class="border-input focus-visible:border-ring focus-visible:ring-ring/50 dark:bg-input/30 w-full resize-none rounded-lg border bg-transparent px-2.5 py-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-3"
       @input="onEdit"
     />

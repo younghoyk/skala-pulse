@@ -14,7 +14,7 @@ function pickCourse(id) {
 }
 
 function latestScore(course) {
-  return course.scoreTrend[course.scoreTrend.length - 1].classAvg
+  return course.score.classAvg
 }
 </script>
 

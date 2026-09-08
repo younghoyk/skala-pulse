@@ -5,6 +5,11 @@
 // 강사 한 명이 여러 강의를 담당할 수 있어서 id로 조회하는 컬렉션으로 둔다.
 // vue-a / algo-a 숫자는 mockAdminOverview.js의 같은 id 항목과 일치시켜뒀다 —
 // 관리자 화면과 강사 화면이 같은 반에 대해 같은 이야기를 하도록.
+//
+// 설문은 강의가 끝날 때 딱 한 번 진행되는 최종 만족도 조사다(주차별 반복 아님) —
+// student-survey-flow-refinements 메모리 3번 참고. 그래서 종합점수는 여러 기수를
+// 이어붙인 추이 그래프가 아니라, 이번 기수의 "반 평균 vs 전체 익명 벤치마크" 2개 막대만
+// 보여준다. rankItems의 "지난 기간"은 같은 반(A반)의 직전 기수 결과를 뜻한다.
 
 export const mockInstructorCourses = {
   'vue-a': {
@@ -14,11 +19,7 @@ export const mockInstructorCourses = {
     classShortLabel: 'A반',
     lowSampleThreshold: 5,
 
-    scoreTrend: [
-      { week: '1주차', classAvg: 4.1, benchmarkAvg: 3.8, respondentCount: 22 },
-      { week: '2주차', classAvg: 3.9, benchmarkAvg: 3.85, respondentCount: 24 },
-      { week: '3주차', classAvg: 3.2, benchmarkAvg: 3.8, respondentCount: 23 },
-    ],
+    score: { classAvg: 3.2, benchmarkAvg: 3.8, respondentCount: 23 },
 
     rankItems: [
       { id: 'assignment', label: '과제 난이도', avgRank: 2.0, previousAvgRank: 2.4 },
@@ -38,11 +39,7 @@ export const mockInstructorCourses = {
     classShortLabel: 'A반',
     lowSampleThreshold: 5,
 
-    scoreTrend: [
-      { week: '1주차', classAvg: 3.9, benchmarkAvg: 3.8, respondentCount: 16 },
-      { week: '2주차', classAvg: 4.15, benchmarkAvg: 3.85, respondentCount: 18 },
-      { week: '3주차', classAvg: 4.2, benchmarkAvg: 3.8, respondentCount: 17 },
-    ],
+    score: { classAvg: 4.2, benchmarkAvg: 3.8, respondentCount: 17 },
 
     rankItems: [
       { id: 'assignment', label: '과제 난이도', avgRank: 1.8, previousAvgRank: 2.0 },

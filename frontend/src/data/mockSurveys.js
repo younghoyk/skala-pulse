@@ -99,6 +99,8 @@ export const mockSurveys = [
   },
 ]
 
-// 지난 피드백이 실제로 반영된 사례 — /survey/complete 배너용 mock
+// 지난 기수 피드백이 실제로 반영된 사례 — /survey/complete 배너용 mock.
+// 설문은 강의가 끝날 때 한 번만 진행되므로(주차별 반복 아님), "지난 주"가 아니라
+// "지난 기수" 피드백이 이번 기수 강의에 반영됐다는 맥락이다.
 export const mockPreviousFeedbackNotice =
-  '지난 주 "실습 시간 부족" 피드백을 반영해 이번 주부터 실습 세션이 30분 늘어났어요.'
+  '지난 기수 "실습 시간 부족" 피드백을 반영해 이번 기수부터 실습 세션이 30분 늘어났어요.'
