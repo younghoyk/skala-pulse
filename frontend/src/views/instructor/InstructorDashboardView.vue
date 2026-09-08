@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import { Badge } from '@/components/ui/badge'
 import { useInstructorCourseStore } from '@/stores/instructorCourse'
 import { mockInstructorCourses } from '@/data/mockInstructorData'
-import ScoreCompareCard from '@/components/dashboard/ScoreCompareCard.vue'
+import ScoreBarsCard from '@/components/dashboard/ScoreBarsCard.vue'
 import RankLeaderboardCard from '@/components/dashboard/RankLeaderboardCard.vue'
 import InstructorNav from '@/components/instructor/InstructorNav.vue'
 
@@ -12,6 +12,19 @@ const router = useRouter()
 const courseStore = useInstructorCourseStore()
 
 const data = computed(() => mockInstructorCourses[courseStore.selectedCourseId] ?? null)
+
+const scoreBars = computed(() => {
+  if (!data.value) return []
+  const roleColor = getComputedStyle(document.documentElement).getPropertyValue('--role-instructor').trim()
+  const inkColor = getComputedStyle(document.documentElement).getPropertyValue('--muted-foreground').trim()
+  return [
+    { label: `${data.value.classShortLabel} 평균`, value: data.value.score.classAvg, color: roleColor },
+    { label: '전체 익명 벤치마크', value: data.value.score.benchmarkAvg, color: inkColor },
+  ]
+})
+const lowSampleNote = computed(() =>
+  data.value && data.value.score.respondentCount < data.value.lowSampleThreshold ? '응답 표본 적음 — 신뢰도 낮음' : '',
+)
 
 onMounted(() => {
   if (!data.value) router.replace({ name: 'instructor-courses' })
@@ -39,11 +52,7 @@ onMounted(() => {
       <!-- 두 카드는 서로 다른 데이터를 병렬로 보여줄 뿐, 인과관계를 연결하는 화살표나
            문구는 두지 않는다 (cause-diagnosis-logic 메모리 원칙). -->
       <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
-        <ScoreCompareCard
-          :score="data.score"
-          :low-sample-threshold="data.lowSampleThreshold"
-          :class-label="data.classShortLabel"
-        />
+        <ScoreBarsCard :bars="scoreBars" :low-sample-note="lowSampleNote" />
         <RankLeaderboardCard :items="data.rankItems" />
       </div>
     </div>
