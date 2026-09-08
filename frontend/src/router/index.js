@@ -6,6 +6,7 @@ import InstructorCoursesView from '@/views/instructor/InstructorCoursesView.vue'
 import InstructorDashboardView from '@/views/instructor/InstructorDashboardView.vue'
 import InstructorFeedbacksView from '@/views/instructor/InstructorFeedbacksView.vue'
 import AdminDashboardView from '@/views/admin/AdminDashboardView.vue'
+import AdminFeedbacksView from '@/views/admin/AdminFeedbacksView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -18,6 +19,7 @@ const router = createRouter({
     { path: '/instructor/dashboard', name: 'instructor-dashboard', component: InstructorDashboardView },
     { path: '/instructor/feedbacks', name: 'instructor-feedbacks', component: InstructorFeedbacksView },
     { path: '/admin/dashboard', name: 'admin-dashboard', component: AdminDashboardView },
+    { path: '/admin/feedbacks', name: 'admin-feedbacks', component: AdminFeedbacksView },
   ],
 })
 
