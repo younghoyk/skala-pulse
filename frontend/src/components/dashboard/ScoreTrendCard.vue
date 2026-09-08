@@ -1,18 +1,10 @@
 <script setup>
 import { computed } from 'vue'
-import { Line } from 'vue-chartjs'
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Tooltip,
-  Legend,
-} from 'chart.js'
+import { Bar } from 'vue-chartjs'
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Tooltip, Legend } from 'chart.js'
 import { Badge } from '@/components/ui/badge'
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend)
+ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend)
 
 const props = defineProps({
   trend: { type: Array, required: true }, // [{ week, classAvg, benchmarkAvg, respondentCount }]
@@ -34,20 +26,16 @@ const chartData = computed(() => ({
     {
       label: `${props.classLabel} 평균`,
       data: props.trend.map((p) => p.classAvg),
-      borderColor: roleColor,
       backgroundColor: roleColor,
-      pointRadius: 4,
-      pointHoverRadius: 5,
-      tension: 0.25,
+      borderRadius: 4,
+      maxBarThickness: 28,
     },
     {
       label: '전체 익명 벤치마크',
       data: props.trend.map((p) => p.benchmarkAvg),
-      borderColor: inkColor,
       backgroundColor: inkColor,
-      borderDash: [5, 4],
-      pointRadius: 3,
-      tension: 0.25,
+      borderRadius: 4,
+      maxBarThickness: 28,
     },
   ],
 }))
@@ -81,7 +69,7 @@ const chartOptions = {
       <Badge v-if="isLowSample" variant="secondary" class="text-[10px]">응답 표본 적음 — 신뢰도 낮음</Badge>
     </div>
     <div style="height: 220px">
-      <Line :data="chartData" :options="chartOptions" />
+      <Bar :data="chartData" :options="chartOptions" />
     </div>
   </div>
 </template>

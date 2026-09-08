@@ -46,7 +46,7 @@ function handleDemoLogin(role) {
     if (firstSurveyId) router.push({ name: 'survey', params: { id: firstSurveyId } })
   } else if (role.key === 'instructor') {
     auth.loginAsDemo('instructor', '데모 교수자')
-    router.push({ name: 'instructor-dashboard' })
+    router.push({ name: 'instructor-courses' })
   } else if (role.key === 'admin') {
     auth.loginAsDemo('admin', '데모 관리자')
     router.push({ name: 'admin-dashboard' })

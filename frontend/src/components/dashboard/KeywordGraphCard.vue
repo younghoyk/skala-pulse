@@ -2,7 +2,11 @@
 import { computed } from 'vue'
 import { VueFlow } from '@vue-flow/core'
 import '@vue-flow/core/dist/style.css'
-import { mockKeywordGraph, keywordNodePositions } from '@/data/mockInstructorFeedback'
+
+const props = defineProps({
+  graph: { type: Object, required: true }, // { nodes: [{id,label,weight}], edges: [{id,source,target,weight}] }
+  positions: { type: Object, required: true }, // { [nodeId]: {x,y} }
+})
 
 const style = getComputedStyle(document.documentElement)
 const roleColor = style.getPropertyValue('--role-instructor').trim() || '#b8730f'
@@ -14,12 +18,12 @@ function nodeSize(weight) {
 }
 
 const nodes = computed(() =>
-  mockKeywordGraph.nodes.map((n) => {
+  props.graph.nodes.map((n) => {
     const size = nodeSize(n.weight)
     return {
       id: n.id,
       type: 'default',
-      position: keywordNodePositions[n.id] ?? { x: 0, y: 0 },
+      position: props.positions[n.id] ?? { x: 0, y: 0 },
       data: { label: n.label },
       draggable: false,
       connectable: false,
@@ -43,7 +47,7 @@ const nodes = computed(() =>
 )
 
 const edges = computed(() =>
-  mockKeywordGraph.edges.map((e) => ({
+  props.graph.edges.map((e) => ({
     id: e.id,
     source: e.source,
     target: e.target,

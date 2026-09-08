@@ -1,20 +1,33 @@
 <script setup>
+import { computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { Badge } from '@/components/ui/badge'
-import { mockInstructorClass } from '@/data/mockInstructorData'
+import { useInstructorCourseStore } from '@/stores/instructorCourse'
+import { mockInstructorCourses } from '@/data/mockInstructorData'
 import ScoreTrendCard from '@/components/dashboard/ScoreTrendCard.vue'
 import RankLeaderboardCard from '@/components/dashboard/RankLeaderboardCard.vue'
 import InstructorNav from '@/components/instructor/InstructorNav.vue'
 
-const data = mockInstructorClass
+const router = useRouter()
+const courseStore = useInstructorCourseStore()
+
+const data = computed(() => mockInstructorCourses[courseStore.selectedCourseId] ?? null)
+
+onMounted(() => {
+  if (!data.value) router.replace({ name: 'instructor-courses' })
+})
 </script>
 
 <template>
-  <div class="min-h-svh bg-muted/40 px-4 py-10">
+  <div v-if="data" class="min-h-svh bg-muted/40 px-4 py-10">
     <div class="mx-auto max-w-3xl">
       <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <p class="text-xs font-medium text-muted-foreground">{{ data.className }}</p>
           <h1 class="text-xl font-bold text-foreground">{{ data.courseName }} · 대시보드</h1>
+          <RouterLink :to="{ name: 'instructor-courses' }" class="text-xs underline" style="color: var(--role-instructor)">
+            다른 강의 선택
+          </RouterLink>
         </div>
         <Badge variant="secondary" class="text-xs">
           제출 현황 {{ data.submission.submitted }}명 / {{ data.submission.total }}명
