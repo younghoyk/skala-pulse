@@ -16,15 +16,33 @@ function average(list) {
   return list.reduce((sum, c) => sum + c.currentAvg, 0) / list.length
 }
 
+function sumSubmission(list) {
+  return {
+    submitted: list.reduce((sum, c) => sum + c.submission.submitted, 0),
+    total: list.reduce((sum, c) => sum + c.submission.total, 0),
+  }
+}
+
 const roleColor = getComputedStyle(document.documentElement).getPropertyValue('--role-admin').trim()
 const inkColor = getComputedStyle(document.documentElement).getPropertyValue('--muted-foreground').trim()
 
 // 반마다 막대 + 이 과목 전체 평균 + 다른 과목들을 다 합친 평균(벤치마크) — 인과관계를
-// 계산하거나 연결하지 않고 병치만 한다 (cause-diagnosis-logic 원칙).
+// 계산하거나 연결하지 않고 병치만 한다 (cause-diagnosis-logic 원칙). 반별 제출 현황은
+// 표에 안 보이니 막대에 마우스를 올렸을 때 툴팁으로 보여준다.
 const scoreBars = computed(() => [
-  ...classes.value.map((c) => ({ label: c.className, value: c.currentAvg, color: roleColor })),
-  { label: `${courseName.value} 전체`, value: average(classes.value), color: roleColor },
-  { label: '다른 과목 평균', value: average(otherClasses.value), color: inkColor },
+  ...classes.value.map((c) => ({ label: c.className, value: c.currentAvg, color: roleColor, submission: c.submission })),
+  {
+    label: `${courseName.value} 전체`,
+    value: average(classes.value),
+    color: roleColor,
+    submission: sumSubmission(classes.value),
+  },
+  {
+    label: '다른 과목 평균',
+    value: average(otherClasses.value),
+    color: inkColor,
+    submission: sumSubmission(otherClasses.value),
+  },
 ])
 
 // 개별 반이 아니라 이 과목 반들의 항목별 순위를 평균 낸 "과목 전체" 순위표 하나.

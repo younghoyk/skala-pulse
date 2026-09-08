@@ -10,7 +10,7 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip)
 // 호출부가 결정한다. 컴포넌트는 그냥 label/value/color 배열을 그대로 그린다.
 const props = defineProps({
   title: { type: String, default: '종합 만족도' },
-  bars: { type: Array, required: true }, // [{ label, value, color }]
+  bars: { type: Array, required: true }, // [{ label, value, color, submission?: { submitted, total } }]
   lowSampleNote: { type: String, default: '' }, // 비어있지 않으면 배지로 표시
 })
 
@@ -47,6 +47,16 @@ const chartOptions = {
   },
   plugins: {
     legend: { display: false },
+    tooltip: {
+      callbacks: {
+        label(ctx) {
+          const bar = props.bars[ctx.dataIndex]
+          const lines = [`만족도 ${ctx.parsed.y.toFixed(1)}`]
+          if (bar?.submission) lines.push(`제출 ${bar.submission.submitted}명 / ${bar.submission.total}명`)
+          return lines
+        },
+      },
+    },
   },
 }
 </script>
