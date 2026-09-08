@@ -17,6 +17,7 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip,
 const props = defineProps({
   trend: { type: Array, required: true }, // [{ week, classAvg, benchmarkAvg, respondentCount }]
   lowSampleThreshold: { type: Number, default: 5 },
+  classLabel: { type: String, default: '이 반' }, // 강사가 여러 반을 담당할 수 있어 "우리 반" 대신 구체적인 이름을 받는다
 })
 
 const style = getComputedStyle(document.documentElement)
@@ -31,7 +32,7 @@ const chartData = computed(() => ({
   labels: props.trend.map((p) => p.week),
   datasets: [
     {
-      label: '우리 반 평균',
+      label: `${props.classLabel} 평균`,
       data: props.trend.map((p) => p.classAvg),
       borderColor: roleColor,
       backgroundColor: roleColor,

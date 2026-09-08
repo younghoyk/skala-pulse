@@ -23,7 +23,11 @@ const data = mockInstructorClass
       <!-- 두 카드는 서로 다른 데이터를 병렬로 보여줄 뿐, 인과관계를 연결하는 화살표나
            문구는 두지 않는다 (cause-diagnosis-logic 메모리 원칙). -->
       <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
-        <ScoreTrendCard :trend="data.scoreTrend" :low-sample-threshold="data.lowSampleThreshold" />
+        <ScoreTrendCard
+          :trend="data.scoreTrend"
+          :low-sample-threshold="data.lowSampleThreshold"
+          :class-label="data.classShortLabel"
+        />
         <RankLeaderboardCard :items="data.rankItems" />
       </div>
     </div>

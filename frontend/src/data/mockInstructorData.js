@@ -5,6 +5,7 @@
 export const mockInstructorClass = {
   courseName: 'Vue.js 실전 프로젝트',
   className: 'SKALA 3기 · A반',
+  classShortLabel: 'A반', // 차트 범례처럼 좁은 공간에 쓸 짧은 이름 — 강사가 여러 반을 담당할 수 있어 "우리 반" 같은 모호한 표현 대신 구체적인 반 이름을 쓴다
   lowSampleThreshold: 5,
 
   // 종합점수 블록 — 주차별 반 평균 vs 전체 익명 벤치마크. 개인 점수는 없음.
