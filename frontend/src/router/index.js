@@ -11,6 +11,7 @@ import AdminDashboardView from '@/views/admin/AdminDashboardView.vue'
 import AdminCourseDetailView from '@/views/admin/AdminCourseDetailView.vue'
 import AdminCourseKeywordsView from '@/views/admin/AdminCourseKeywordsView.vue'
 import AdminCourseGalleryView from '@/views/admin/AdminCourseGalleryView.vue'
+import AdminKanbanView from '@/views/admin/AdminKanbanView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -28,6 +29,7 @@ const router = createRouter({
     { path: '/admin/dashboard/:courseId', name: 'admin-course-detail', component: AdminCourseDetailView },
     { path: '/admin/dashboard/:courseId/keywords', name: 'admin-course-keywords', component: AdminCourseKeywordsView },
     { path: '/admin/dashboard/:courseId/gallery', name: 'admin-course-gallery', component: AdminCourseGalleryView },
+    { path: '/admin/kanban', name: 'admin-kanban', component: AdminKanbanView },
   ],
 })
 
