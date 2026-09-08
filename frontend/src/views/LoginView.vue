@@ -33,7 +33,7 @@ const roles = [
     sub: 'Super Admin',
     desc: '전체 과정과 설문을 총괄합니다',
     accentVar: '--role-admin',
-    enabled: false,
+    enabled: true,
   },
 ]
 
@@ -47,6 +47,9 @@ function handleDemoLogin(role) {
   } else if (role.key === 'instructor') {
     auth.loginAsDemo('instructor', '데모 교수자')
     router.push({ name: 'instructor-dashboard' })
+  } else if (role.key === 'admin') {
+    auth.loginAsDemo('admin', '데모 관리자')
+    router.push({ name: 'admin-dashboard' })
   }
 }
 </script>
