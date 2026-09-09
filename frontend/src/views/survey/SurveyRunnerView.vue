@@ -1,5 +1,5 @@
 <script setup>
-import { computed, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSurveyStore, getNextBlockIndex } from '@/stores/survey'
 import { Button } from '@/components/ui/button'
@@ -12,19 +12,28 @@ const props = defineProps({ id: { type: String, required: true } })
 const router = useRouter()
 const surveyStore = useSurveyStore()
 
-const survey = computed(() => surveyStore.getSurveyById(props.id))
+const survey = ref(null)
+const loading = ref(true)
 
 const currentIndex = ref(0)
 const answers = reactive({})
 
-// 라우트가 바뀌면(다음 설문으로 이동) 진행 상태를 초기화한다.
-watch(
-  () => props.id,
-  () => {
-    currentIndex.value = 0
-    Object.keys(answers).forEach((key) => delete answers[key])
-  },
-)
+async function load() {
+  loading.value = true
+  currentIndex.value = 0
+  Object.keys(answers).forEach((key) => delete answers[key])
+  try {
+    survey.value = await surveyStore.loadSurveyDetail(props.id)
+  } catch {
+    survey.value = null
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(load)
+// 라우트가 바뀌면(다음 설문으로 이동) 새로 불러온다.
+watch(() => props.id, load)
 
 const currentBlock = computed(() => survey.value?.blocks[currentIndex.value] ?? null)
 const totalBlocks = computed(() => survey.value?.blocks.length ?? 0)
@@ -41,10 +50,10 @@ function goBack() {
   if (currentIndex.value > 0) currentIndex.value -= 1
 }
 
-function goNext() {
+async function goNext() {
   if (!survey.value) return
   if (isLastBlock.value) {
-    surveyStore.submitSurvey(survey.value.id, { ...answers })
+    await surveyStore.submitSurvey(survey.value.id, { ...answers })
     router.push({ name: 'survey-complete' })
     return
   }
@@ -53,7 +62,11 @@ function goNext() {
 </script>
 
 <template>
-  <div v-if="!survey" class="flex min-h-svh items-center justify-center px-4 text-center">
+  <div v-if="loading" class="flex min-h-svh items-center justify-center px-4 text-center">
+    <p class="text-sm text-muted-foreground">불러오는 중...</p>
+  </div>
+
+  <div v-else-if="!survey" class="flex min-h-svh items-center justify-center px-4 text-center">
     <p class="text-sm text-muted-foreground">
       설문을 찾을 수 없어요. 이미 제출했거나 잘못된 링크일 수 있어요.
     </p>

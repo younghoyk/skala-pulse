@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSurveyStore } from '@/stores/survey'
 import { Badge } from '@/components/ui/badge'
@@ -7,6 +7,8 @@ import PageHeader from '@/components/PageHeader.vue'
 
 const router = useRouter()
 const surveyStore = useSurveyStore()
+
+onMounted(() => surveyStore.loadSurveys())
 
 // 안 한 설문이 위로, 그중에서는 수업 종료일이 임박한(빠른) 반이 위로.
 const sortedSurveys = computed(() =>
