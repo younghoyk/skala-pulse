@@ -8,13 +8,29 @@ const membersStore = useMembersStore()
 
 const CLASS_OPTIONS = ['1반', '2반', '3반', '4반', '5반']
 
-const form = reactive({ name: '', email: '', requestedRole: 'student', className: CLASS_OPTIONS[0], serialNumber: '' })
+const form = reactive({
+  name: '',
+  email: '',
+  requestedRole: 'student',
+  className: CLASS_OPTIONS[0],
+  serialNumber: '',
+  password: '',
+  passwordConfirm: '',
+})
 const submitted = ref(false)
 const submitError = ref('')
 
 async function submit() {
   if (!form.name.trim() || !form.email.trim()) return
   if (form.requestedRole === 'student' && !form.serialNumber.trim()) return
+  if (form.password.length < 8) {
+    submitError.value = '비밀번호는 8자 이상이어야 해요.'
+    return
+  }
+  if (form.password !== form.passwordConfirm) {
+    submitError.value = '비밀번호가 서로 달라요.'
+    return
+  }
   submitError.value = ''
   try {
     await membersStore.requestSignup({
@@ -23,6 +39,7 @@ async function submit() {
       requestedRole: form.requestedRole,
       className: form.requestedRole === 'student' ? form.className : null,
       serialNumber: form.requestedRole === 'student' ? form.serialNumber.trim() : null,
+      password: form.password,
     })
     submitted.value = true
   } catch {
@@ -53,6 +70,14 @@ async function submit() {
           <div>
             <label class="mb-1 block text-xs font-medium text-muted-foreground">이메일</label>
             <Input v-model="form.email" type="email" placeholder="name@skala.io" required />
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-medium text-muted-foreground">비밀번호</label>
+            <Input v-model="form.password" type="password" placeholder="8자 이상" autocomplete="new-password" required />
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-medium text-muted-foreground">비밀번호 확인</label>
+            <Input v-model="form.passwordConfirm" type="password" autocomplete="new-password" required />
           </div>
           <div>
             <label class="mb-1 block text-xs font-medium text-muted-foreground">희망 역할</label>

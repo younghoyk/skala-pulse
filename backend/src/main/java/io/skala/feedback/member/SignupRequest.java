@@ -4,6 +4,7 @@ import io.skala.feedback.common.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 // className/serialNumber는 교육생 신청에서만 채워진다 — 교수자 신청이면 null(서비스에서 검증).
 public record SignupRequest(
@@ -11,5 +12,6 @@ public record SignupRequest(
 		@NotBlank @Email String email,
 		@NotNull Role requestedRole,
 		String className,
-		String serialNumber) {
+		String serialNumber,
+		@NotBlank @Size(min = 8) String password) {
 }

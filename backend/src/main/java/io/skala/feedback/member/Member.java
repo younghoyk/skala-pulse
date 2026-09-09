@@ -41,17 +41,23 @@ public class Member {
 	@Column(name = "serial_number")
 	private String serialNumber;
 
-	public Member(String name, String email, Role role) {
+	// bcrypt 해시만 저장 — 평문은 어디에도 안 남는다.
+	@Column(name = "password_hash", nullable = false)
+	private String passwordHash;
+
+	public Member(String name, String email, Role role, String passwordHash) {
 		this.name = name;
 		this.email = email;
 		this.role = role;
+		this.passwordHash = passwordHash;
 	}
 
-	public Member(String name, String email, Role role, String className, String serialNumber) {
+	public Member(String name, String email, Role role, String className, String serialNumber, String passwordHash) {
 		this.name = name;
 		this.email = email;
 		this.role = role;
 		this.className = className;
 		this.serialNumber = serialNumber;
+		this.passwordHash = passwordHash;
 	}
 }

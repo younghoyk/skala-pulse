@@ -4,6 +4,7 @@ import io.skala.feedback.common.NotFoundException;
 import io.skala.feedback.common.Role;
 import io.skala.feedback.course.CourseService;
 import java.util.List;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,14 +15,17 @@ public class MemberService {
 	private final MemberRepository memberRepository;
 	private final PendingSignupRepository pendingSignupRepository;
 	private final CourseService courseService;
+	private final PasswordEncoder passwordEncoder;
 
 	public MemberService(
 			MemberRepository memberRepository,
 			PendingSignupRepository pendingSignupRepository,
-			CourseService courseService) {
+			CourseService courseService,
+			PasswordEncoder passwordEncoder) {
 		this.memberRepository = memberRepository;
 		this.pendingSignupRepository = pendingSignupRepository;
 		this.courseService = courseService;
+		this.passwordEncoder = passwordEncoder;
 	}
 
 	public List<MemberDto> listMembers() {
@@ -43,10 +47,12 @@ public class MemberService {
 		if (isStudent && (isBlank(request.className()) || isBlank(request.serialNumber()))) {
 			throw new IllegalArgumentException("교육생은 반과 일련번호를 입력해야 해요.");
 		}
+		// 평문 비밀번호는 여기서 즉시 해시하고 나면 어디에도 남기지 않는다.
 		PendingSignup signup = new PendingSignup(
 				request.name(), request.email(), request.requestedRole(),
 				isStudent ? request.className() : null,
-				isStudent ? request.serialNumber() : null);
+				isStudent ? request.serialNumber() : null,
+				passwordEncoder.encode(request.password()));
 		return PendingSignupDto.from(pendingSignupRepository.save(signup));
 	}
 
@@ -60,7 +66,7 @@ public class MemberService {
 				.orElseThrow(() -> new NotFoundException("가입 신청을 찾을 수 없어요: " + signupId));
 		Member member = new Member(
 				signup.getName(), signup.getEmail(), signup.getRequestedRole(),
-				signup.getClassName(), signup.getSerialNumber());
+				signup.getClassName(), signup.getSerialNumber(), signup.getPasswordHash());
 		Member saved = memberRepository.save(member);
 		pendingSignupRepository.delete(signup);
 		if (saved.getRole() == Role.STUDENT) courseService.resyncClassHeadcounts();

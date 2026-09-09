@@ -40,11 +40,17 @@ public class PendingSignup {
 	@Column(name = "serial_number")
 	private String serialNumber;
 
-	public PendingSignup(String name, String email, Role requestedRole, String className, String serialNumber) {
+	@Column(name = "password_hash")
+	private String passwordHash;
+
+	public PendingSignup(
+			String name, String email, Role requestedRole, String className, String serialNumber,
+			String passwordHash) {
 		this.name = name;
 		this.email = email;
 		this.requestedRole = requestedRole;
 		this.className = className;
 		this.serialNumber = serialNumber;
+		this.passwordHash = passwordHash;
 	}
 }

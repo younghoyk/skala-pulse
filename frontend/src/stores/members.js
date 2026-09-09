@@ -30,10 +30,10 @@ export const useMembersStore = defineStore('members', () => {
     pending.splice(0, pending.length, ...pendingRes.map(signupFromApi))
   }
 
-  async function requestSignup({ name, email, requestedRole, className, serialNumber }) {
+  async function requestSignup({ name, email, requestedRole, className, serialNumber, password }) {
     const created = await apiFetch('/api/members/signup', {
       method: 'POST',
-      body: { name, email, requestedRole: requestedRole.toUpperCase(), className, serialNumber },
+      body: { name, email, requestedRole: requestedRole.toUpperCase(), className, serialNumber, password },
     })
     pending.push(signupFromApi(created))
   }
