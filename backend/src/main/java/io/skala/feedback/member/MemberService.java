@@ -2,6 +2,7 @@ package io.skala.feedback.member;
 
 import io.skala.feedback.common.NotFoundException;
 import io.skala.feedback.common.Role;
+import io.skala.feedback.course.CourseService;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,10 +13,15 @@ public class MemberService {
 
 	private final MemberRepository memberRepository;
 	private final PendingSignupRepository pendingSignupRepository;
+	private final CourseService courseService;
 
-	public MemberService(MemberRepository memberRepository, PendingSignupRepository pendingSignupRepository) {
+	public MemberService(
+			MemberRepository memberRepository,
+			PendingSignupRepository pendingSignupRepository,
+			CourseService courseService) {
 		this.memberRepository = memberRepository;
 		this.pendingSignupRepository = pendingSignupRepository;
+		this.courseService = courseService;
 	}
 
 	public List<MemberDto> listMembers() {
@@ -57,6 +63,7 @@ public class MemberService {
 				signup.getClassName(), signup.getSerialNumber());
 		Member saved = memberRepository.save(member);
 		pendingSignupRepository.delete(signup);
+		if (saved.getRole() == Role.STUDENT) courseService.resyncClassHeadcounts();
 		return MemberDto.from(saved);
 	}
 
@@ -73,6 +80,8 @@ public class MemberService {
 		Member member = memberRepository.findById(memberId)
 				.orElseThrow(() -> new NotFoundException("회원을 찾을 수 없어요: " + memberId));
 		member.setRole(role);
+		// 이 회원이 학생이었다가 아니게 되거나, 그 반대일 수 있어서 항상 다시 계산한다.
+		courseService.resyncClassHeadcounts();
 		return MemberDto.from(member);
 	}
 
@@ -82,5 +91,6 @@ public class MemberService {
 			throw new NotFoundException("회원을 찾을 수 없어요: " + memberId);
 		}
 		memberRepository.deleteById(memberId);
+		courseService.resyncClassHeadcounts();
 	}
 }

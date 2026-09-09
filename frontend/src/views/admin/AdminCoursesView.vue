@@ -40,13 +40,12 @@ async function onLeadInstructorChange(course) {
   await coursesStore.updateCourse(course.id, { leadInstructorId: course.leadInstructorId })
 }
 
-const newClassForms = reactive({}) // courseId -> { open, name, capacity, format, labInstructorId, startDate, endDate }
+const newClassForms = reactive({}) // courseId -> { open, name, format, labInstructorId, startDate, endDate }
 
 function blankClassForm() {
   return {
     open: true,
     name: '',
-    capacity: 20,
     format: 'zoom',
     labInstructorId: instructorOptions.value[0]?.id ?? null,
     startDate: '',
@@ -63,7 +62,6 @@ async function addClass(course) {
   if (!form?.name.trim()) return
   await coursesStore.addClass(course.id, {
     name: form.name.trim(),
-    capacity: Number(form.capacity) || 0,
     format: form.format,
     labInstructorId: form.format === 'direct' ? null : form.labInstructorId,
     startDate: form.startDate || null,
@@ -144,17 +142,6 @@ function onClassFormatChange(cls) {
               <span class="w-12 shrink-0 text-sm font-medium text-foreground">{{ cls.name }}</span>
 
               <label class="flex items-center gap-1.5 text-xs text-muted-foreground">
-                총원
-                <input
-                  v-model.number="cls.capacity"
-                  type="number"
-                  min="0"
-                  class="w-16 rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground outline-none"
-                  @change="onClassFieldChange(cls, 'capacity')"
-                />
-              </label>
-
-              <label class="flex items-center gap-1.5 text-xs text-muted-foreground">
                 수업 방식
                 <select
                   v-model="cls.format"
@@ -214,15 +201,6 @@ function onClassFormatChange(cls) {
 
             <div v-if="newClassForms[course.id]?.open" class="flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-border p-3">
               <Input v-model="newClassForms[course.id].name" placeholder="반 이름 (예: C반)" class="w-28" />
-              <label class="flex items-center gap-1.5 text-xs text-muted-foreground">
-                총원
-                <input
-                  v-model.number="newClassForms[course.id].capacity"
-                  type="number"
-                  min="0"
-                  class="w-16 rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground outline-none"
-                />
-              </label>
               <select
                 v-model="newClassForms[course.id].format"
                 class="rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground outline-none"

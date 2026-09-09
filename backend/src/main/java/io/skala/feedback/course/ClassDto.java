@@ -6,7 +6,6 @@ import java.time.LocalDate;
 public record ClassDto(
 		Long id,
 		String name,
-		Integer capacity,
 		ClassFormat format,
 		Long labInstructorId,
 		String labInstructorName,
@@ -22,7 +21,6 @@ public record ClassDto(
 		return new ClassDto(
 				classGroup.getId(),
 				classGroup.getName(),
-				classGroup.getCapacity(),
 				classGroup.getFormat(),
 				labMember != null ? labMember.getId() : null,
 				labMember != null ? labMember.getName() : null,

@@ -1,6 +1,7 @@
 package io.skala.feedback.course;
 
 import io.skala.feedback.common.NotFoundException;
+import io.skala.feedback.common.Role;
 import io.skala.feedback.course.MyCourseDto.ClassRefDto;
 import io.skala.feedback.member.Member;
 import io.skala.feedback.member.MemberRepository;
@@ -9,6 +10,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -110,19 +112,31 @@ public class CourseService {
 				? findMember(request.labInstructorId())
 				: null;
 		ClassGroup classGroup = new ClassGroup(
-				course, request.name(), request.capacity(), request.format(), labInstructor,
+				course, request.name(), request.format(), labInstructor,
 				request.startDate(), request.endDate());
 		course.getClasses().add(classGroup);
-		return CourseDto.from(courseRepository.save(course));
+		Course saved = courseRepository.save(course);
+		resyncClassHeadcounts();
+		return CourseDto.from(saved);
+	}
+
+	// 총원(total_count)은 관리자가 입력하는 값이 아니라 실제 회원가입 인원 — 반 이름
+	// (1반~5반)은 34개 과정에 걸쳐 같은 학생 코호트를 가리키므로 이름 기준으로 한 번만
+	// 계산해서 전부에 적용한다. 이 규모에선 매번 전체 재계산해도 충분히 저렴하다.
+	@Transactional
+	public void resyncClassHeadcounts() {
+		Map<String, Long> countsByClassName = memberRepository.findByRole(Role.STUDENT).stream()
+				.filter(m -> m.getClassName() != null)
+				.collect(Collectors.groupingBy(Member::getClassName, Collectors.counting()));
+		for (ClassGroup cls : classGroupRepository.findAll()) {
+			cls.setTotalCount(countsByClassName.getOrDefault(cls.getName(), 0L).intValue());
+		}
 	}
 
 	@Transactional
 	public ClassDto updateClass(Long classId, ClassUpdateRequest request) {
 		ClassGroup classGroup = classGroupRepository.findById(classId)
 				.orElseThrow(() -> new NotFoundException("반을 찾을 수 없어요: " + classId));
-		if (request.capacity() != null) {
-			classGroup.setCapacity(request.capacity());
-		}
 		if (request.format() != null) {
 			classGroup.setFormat(request.format());
 		}

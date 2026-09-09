@@ -38,9 +38,6 @@ public class ClassGroup {
 	@Column(nullable = false)
 	private String name;
 
-	@Column(nullable = false)
-	private Integer capacity;
-
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	private ClassFormat format;
@@ -58,19 +55,19 @@ public class ClassGroup {
 	@Column(name = "submitted_count", nullable = false)
 	private Integer submittedCount = 0;
 
+	// 총원 — 관리자가 입력하는 값이 아니라 CourseService.resyncClassHeadcounts()가 실제
+	// 회원가입 인원(반 이름 기준)으로 채운다. 생성 직후 동기화 전까지의 안전한 초깃값 0.
 	@Column(name = "total_count", nullable = false)
-	private Integer totalCount;
+	private Integer totalCount = 0;
 
-	public ClassGroup(Course course, String name, Integer capacity, ClassFormat format, Member labInstructor,
+	public ClassGroup(Course course, String name, ClassFormat format, Member labInstructor,
 			LocalDate startDate, LocalDate endDate) {
 		this.course = course;
 		this.name = name;
-		this.capacity = capacity;
 		this.format = format;
 		this.labInstructor = labInstructor;
 		this.startDate = startDate;
 		this.endDate = endDate;
 		this.submittedCount = 0;
-		this.totalCount = capacity;
 	}
 }

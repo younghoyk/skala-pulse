@@ -9,7 +9,6 @@ function classFromApi(c) {
   return {
     id: c.id,
     name: c.name,
-    capacity: c.capacity,
     format: c.format.toLowerCase(),
     labInstructorId: c.labInstructorId,
     labInstructorName: c.labInstructorName,
@@ -56,10 +55,10 @@ export const useCoursesStore = defineStore('courses', () => {
     if (idx !== -1) courses.splice(idx, 1)
   }
 
-  async function addClass(courseId, { name, capacity, format, labInstructorId, startDate, endDate }) {
+  async function addClass(courseId, { name, format, labInstructorId, startDate, endDate }) {
     const updated = await apiFetch(`/api/courses/${courseId}/classes`, {
       method: 'POST',
-      body: { name, capacity, format: format.toUpperCase(), labInstructorId, startDate, endDate },
+      body: { name, format: format.toUpperCase(), labInstructorId, startDate, endDate },
     })
     const course = courses.find((c) => c.id === courseId)
     if (course) course.classes = courseFromApi(updated).classes
