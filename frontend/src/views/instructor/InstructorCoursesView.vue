@@ -36,7 +36,7 @@ const roleLabel = { lead: '전임교수', lab: '실습교수' }
           v-for="course in courses"
           :key="course.id"
           type="button"
-          class="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3.5 text-left transition hover:shadow-sm"
+          class="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3.5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
           style="--hover-border: var(--role-instructor)"
           @mouseenter="(e) => (e.currentTarget.style.borderColor = 'var(--role-instructor)')"
           @mouseleave="(e) => (e.currentTarget.style.borderColor = '')"

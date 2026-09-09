@@ -16,22 +16,21 @@ function handleLogout() {
 </script>
 
 <template>
-  <header class="flex items-center justify-between border-b border-border bg-card px-4 py-2">
-    <div class="h-7 overflow-hidden rounded-md">
-      <img src="/skala-logo.png" alt="SKALA" class="h-full w-auto object-cover" />
-    </div>
+  <header class="sticky top-0 z-10 flex items-center justify-between bg-card/90 px-5 py-2.5 shadow-sm backdrop-blur-sm">
+    <img src="/skala-logo.png" alt="SKALA" class="h-6 w-auto" />
 
-    <div v-if="auth.role" class="flex items-center gap-2.5">
+    <div v-if="auth.role" class="flex items-center gap-3">
       <span
-        class="rounded-full px-2 py-0.5 text-[11px] font-medium"
+        class="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold"
         :style="{ background: `var(${roleVar}-soft)`, color: `var(${roleVar})` }"
       >
+        <span class="h-1.5 w-1.5 rounded-full" :style="{ background: `var(${roleVar})` }" />
         {{ roleLabels[auth.role] }}
       </span>
       <span class="text-xs text-muted-foreground">{{ auth.displayName }}</span>
       <button
         type="button"
-        class="text-xs font-medium text-muted-foreground underline hover:text-foreground"
+        class="text-xs font-medium text-muted-foreground transition hover:text-foreground"
         @click="handleLogout"
       >
         로그아웃

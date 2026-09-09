@@ -45,7 +45,7 @@ const groupedByCourse = computed(() => {
             <li
               v-for="task in group.items"
               :key="task.id"
-              class="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3"
+              class="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 shadow-sm"
             >
               <button
                 type="button"

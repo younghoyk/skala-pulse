@@ -30,7 +30,7 @@ function deleteMember(member) {
           <li
             v-for="signup in pending"
             :key="signup.id"
-            class="flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3"
+            class="flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3 shadow-sm"
           >
             <div>
               <p class="text-sm font-medium text-foreground">{{ signup.name }}</p>
@@ -74,7 +74,7 @@ function deleteMember(member) {
           <li
             v-for="member in members"
             :key="member.id"
-            class="flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3"
+            class="flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3 shadow-sm"
           >
             <div>
               <p class="text-sm font-medium text-foreground">{{ member.name }}</p>

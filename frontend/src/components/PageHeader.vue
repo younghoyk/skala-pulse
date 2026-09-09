@@ -10,17 +10,22 @@ defineProps({
 </script>
 
 <template>
-  <div class="mb-5">
+  <div class="mb-6">
     <div class="flex items-start justify-between gap-3">
       <div>
-        <p class="text-xs font-medium text-muted-foreground">{{ eyebrow }}</p>
-        <h1 class="text-xl font-bold text-foreground">{{ title }}</h1>
-        <RouterLink v-if="backTo" :to="backTo" class="text-xs underline" :style="{ color: `var(${accentVar})` }">
-          {{ backLabel }}
+        <p class="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{{ eyebrow }}</p>
+        <h1 class="mt-0.5 text-2xl font-bold tracking-tight text-foreground">{{ title }}</h1>
+        <RouterLink
+          v-if="backTo"
+          :to="backTo"
+          class="mt-0.5 inline-flex items-center gap-1 text-xs font-medium hover:underline"
+          :style="{ color: `var(${accentVar})` }"
+        >
+          ← {{ backLabel }}
         </RouterLink>
       </div>
       <slot name="actions" />
     </div>
-    <p v-if="description" class="mt-1 text-xs text-muted-foreground">{{ description }}</p>
+    <p v-if="description" class="mt-1.5 text-sm text-muted-foreground">{{ description }}</p>
   </div>
 </template>

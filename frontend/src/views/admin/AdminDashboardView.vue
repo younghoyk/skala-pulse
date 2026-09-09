@@ -28,7 +28,7 @@ function openCourse(courseId) {
           v-for="course in courses"
           :key="course.courseId"
           type="button"
-          class="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3.5 text-left transition hover:shadow-sm"
+          class="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3.5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
           @click="openCourse(course.courseId)"
         >
           <div>

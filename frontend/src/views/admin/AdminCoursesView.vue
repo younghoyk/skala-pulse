@@ -118,7 +118,7 @@ function deleteCourse(courseId) {
             <div
               v-for="cls in course.classes"
               :key="cls.id"
-              class="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card px-4 py-3"
+              class="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 shadow-sm"
             >
               <span class="w-12 shrink-0 text-sm font-medium text-foreground">{{ cls.name }}</span>
 
