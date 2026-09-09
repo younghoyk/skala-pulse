@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: feedback
+  datasource:
+    url: jdbc:postgresql://localhost:5432/skala_feedback
+    username: skala
+    password: skala
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+  flyway:
+    enabled: true
+
+server:
+  port: 8080
+
+app:
+  jwt:
+    # 데모 로그인 단계 전용 서명 키 — 실제 Slack OAuth 붙일 때 교체.
+    secret: "skala-feedback-demo-jwt-signing-key-change-me-please-2026"
+    expiration-minutes: 720
+
+logging:
+  level:
+    org.flywaydb: INFO

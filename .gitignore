@@ -1,2 +1,8 @@
 .claude/
 .DS_Store
+
+# backend (Gradle)
+backend/build/
+backend/.gradle/
+backend/out/
+!backend/gradle/wrapper/gradle-wrapper.jar

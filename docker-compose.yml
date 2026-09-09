@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: skala-feedback-db
+    environment:
+      POSTGRES_DB: skala_feedback
+      POSTGRES_USER: skala
+      POSTGRES_PASSWORD: skala
+    ports:
+      - "5432:5432"
+    volumes:
+      - skala-feedback-db-data:/var/lib/postgresql/data
+
+volumes:
+  skala-feedback-db-data:
