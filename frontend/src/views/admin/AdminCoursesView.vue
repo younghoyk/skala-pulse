@@ -52,6 +52,20 @@ function addClass(course) {
   })
   newClassForms[course.id] = { ...blankClassForm(), open: false }
 }
+
+function deleteClass(course, classId) {
+  const idx = course.classes.findIndex((c) => c.id === classId)
+  if (idx === -1) return
+  if (!confirm(`${course.name} ${course.classes[idx].name}을(를) 삭제할까요?`)) return
+  course.classes.splice(idx, 1)
+}
+
+function deleteCourse(courseId) {
+  const idx = courses.findIndex((c) => c.id === courseId)
+  if (idx === -1) return
+  if (!confirm(`${courses[idx].name} 과정을 삭제할까요? 소속된 반도 함께 삭제됩니다.`)) return
+  courses.splice(idx, 1)
+}
 </script>
 
 <template>
@@ -90,6 +104,14 @@ function addClass(course) {
                 <option v-for="name in instructorOptions" :key="name" :value="name">{{ name }}</option>
               </select>
             </label>
+            <button
+              type="button"
+              class="ml-auto rounded-md border px-2.5 py-1 text-xs font-medium hover:opacity-90"
+              style="border-color: var(--danger); color: var(--danger)"
+              @click="deleteCourse(course.id)"
+            >
+              과정 삭제
+            </button>
           </div>
 
           <div class="flex flex-col gap-2">
@@ -151,6 +173,15 @@ function addClass(course) {
               <span class="ml-auto shrink-0 font-mono text-xs text-muted-foreground">
                 제출 {{ cls.submission.submitted }}명 / {{ cls.submission.total }}명
               </span>
+
+              <button
+                type="button"
+                class="shrink-0 rounded-md border px-2 py-1 text-xs font-medium hover:opacity-90"
+                style="border-color: var(--danger); color: var(--danger)"
+                @click="deleteClass(course, cls.id)"
+              >
+                삭제
+              </button>
             </div>
 
             <div v-if="newClassForms[course.id]?.open" class="flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-border p-3">

@@ -17,6 +17,12 @@ function reject(id) {
   const idx = pending.findIndex((p) => p.id === id)
   if (idx !== -1) pending.splice(idx, 1)
 }
+
+function deleteMember(member) {
+  if (!confirm(`${member.name}님을 삭제할까요?`)) return
+  const idx = members.findIndex((m) => m.id === member.id)
+  if (idx !== -1) members.splice(idx, 1)
+}
 </script>
 
 <template>
@@ -90,12 +96,22 @@ function reject(id) {
               <p class="text-sm font-medium text-foreground">{{ member.name }}</p>
               <p class="text-xs text-muted-foreground">{{ member.email }}</p>
             </div>
-            <select
-              v-model="member.role"
-              class="rounded-md border border-border bg-card px-2 py-1.5 text-xs text-foreground outline-none"
-            >
-              <option v-for="(label, key) in roleLabels" :key="key" :value="key">{{ label }}</option>
-            </select>
+            <div class="flex items-center gap-2">
+              <select
+                v-model="member.role"
+                class="rounded-md border border-border bg-card px-2 py-1.5 text-xs text-foreground outline-none"
+              >
+                <option v-for="(label, key) in roleLabels" :key="key" :value="key">{{ label }}</option>
+              </select>
+              <button
+                type="button"
+                class="rounded-md border px-2.5 py-1 text-xs font-medium hover:opacity-90"
+                style="border-color: var(--danger); color: var(--danger)"
+                @click="deleteMember(member)"
+              >
+                삭제
+              </button>
+            </div>
           </li>
         </TransitionGroup>
       </section>
