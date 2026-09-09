@@ -34,6 +34,7 @@ function tagsFor(dimensions) {
 export const mockSurveys = [
   {
     id: 'survey-vue-w1',
+    classId: 'vue-a',
     courseName: 'Vue.js 실전 프로젝트',
     className: 'SKALA 3기 · A반',
     blocks: [
@@ -74,6 +75,7 @@ export const mockSurveys = [
   },
   {
     id: 'survey-db-w1',
+    classId: 'db-a',
     courseName: '데이터베이스 설계',
     className: 'SKALA 3기 · A반',
     blocks: [

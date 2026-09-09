@@ -27,6 +27,8 @@ function blankClassForm() {
     capacity: 20,
     format: 'zoom',
     labInstructorName: instructorOptions[0] ?? '',
+    startDate: '',
+    endDate: '',
   }
 }
 
@@ -44,6 +46,8 @@ function addClass(course) {
     capacity,
     format: form.format,
     labInstructorName: form.format === 'direct' ? null : form.labInstructorName,
+    startDate: form.startDate,
+    endDate: form.endDate,
     submission: { submitted: 0, total: capacity },
   })
   newClassForms[course.id] = { ...blankClassForm(), open: false }
@@ -129,6 +133,21 @@ function addClass(course) {
                 <span v-else class="text-foreground">{{ labInstructorFor(course, cls) }} (전임과 동일)</span>
               </label>
 
+              <label class="flex items-center gap-1.5 text-xs text-muted-foreground">
+                수업 기간
+                <input
+                  v-model="cls.startDate"
+                  type="date"
+                  class="rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground outline-none"
+                />
+                ~
+                <input
+                  v-model="cls.endDate"
+                  type="date"
+                  class="rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground outline-none"
+                />
+              </label>
+
               <span class="ml-auto shrink-0 font-mono text-xs text-muted-foreground">
                 제출 {{ cls.submission.submitted }}명 / {{ cls.submission.total }}명
               </span>
@@ -160,6 +179,17 @@ function addClass(course) {
                 <option v-for="name in instructorOptions" :key="name" :value="name">{{ name }} (실습)</option>
               </select>
               <span v-else class="text-xs text-muted-foreground">실습교수: 전임과 동일</span>
+              <input
+                v-model="newClassForms[course.id].startDate"
+                type="date"
+                class="rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground outline-none"
+              />
+              ~
+              <input
+                v-model="newClassForms[course.id].endDate"
+                type="date"
+                class="rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground outline-none"
+              />
               <Button size="sm" style="background: var(--role-admin)" class="text-white hover:opacity-90" @click="addClass(course)">
                 추가
               </Button>

@@ -22,8 +22,8 @@ export const mockCourseManagement = [
     name: 'Vue.js 실전 프로젝트',
     leadInstructorName: '정민지',
     classes: [
-      { id: 'vue-a', name: 'A반', capacity: 23, format: 'zoom', labInstructorName: '최유준', submission: { submitted: 19, total: 23 } },
-      { id: 'vue-b', name: 'B반', capacity: 22, format: 'direct', labInstructorName: null, submission: { submitted: 20, total: 22 } },
+      { id: 'vue-a', name: 'A반', capacity: 23, format: 'zoom', labInstructorName: '최유준', startDate: '2026-08-24', endDate: '2026-09-17', submission: { submitted: 19, total: 23 } },
+      { id: 'vue-b', name: 'B반', capacity: 22, format: 'direct', labInstructorName: null, startDate: '2026-08-24', endDate: '2026-09-18', submission: { submitted: 20, total: 22 } },
     ],
   },
   {
@@ -31,8 +31,8 @@ export const mockCourseManagement = [
     name: '데이터베이스 설계',
     leadInstructorName: '최유준',
     classes: [
-      { id: 'db-a', name: 'A반', capacity: 20, format: 'zoom', labInstructorName: '정민지', submission: { submitted: 18, total: 20 } },
-      { id: 'db-b', name: 'B반', capacity: 24, format: 'direct', labInstructorName: null, submission: { submitted: 21, total: 24 } },
+      { id: 'db-a', name: 'A반', capacity: 20, format: 'zoom', labInstructorName: '정민지', startDate: '2026-08-31', endDate: '2026-09-10', submission: { submitted: 18, total: 20 } },
+      { id: 'db-b', name: 'B반', capacity: 24, format: 'direct', labInstructorName: null, startDate: '2026-08-31', endDate: '2026-09-11', submission: { submitted: 21, total: 24 } },
     ],
   },
   {
@@ -40,8 +40,8 @@ export const mockCourseManagement = [
     name: '알고리즘 기초',
     leadInstructorName: '최유준',
     classes: [
-      { id: 'algo-a', name: 'A반', capacity: 19, format: 'zoom', labInstructorName: '정민지', submission: { submitted: 17, total: 19 } },
-      { id: 'algo-b', name: 'B반', capacity: 6, format: 'direct', labInstructorName: null, submission: { submitted: 4, total: 6 } },
+      { id: 'algo-a', name: 'A반', capacity: 19, format: 'zoom', labInstructorName: '정민지', startDate: '2026-09-07', endDate: '2026-09-25', submission: { submitted: 17, total: 19 } },
+      { id: 'algo-b', name: 'B반', capacity: 6, format: 'direct', labInstructorName: null, startDate: '2026-09-07', endDate: '2026-09-26', submission: { submitted: 4, total: 6 } },
     ],
   },
 ]

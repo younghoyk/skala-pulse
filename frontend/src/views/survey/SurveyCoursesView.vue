@@ -7,10 +7,21 @@ import { Badge } from '@/components/ui/badge'
 const router = useRouter()
 const surveyStore = useSurveyStore()
 
-// 안 한 설문이 위로 — 제출 여부만 기준으로 정렬(제출 안 함 먼저).
+// 안 한 설문이 위로, 그중에서는 수업 종료일이 임박한(빠른) 반이 위로.
 const sortedSurveys = computed(() =>
-  [...surveyStore.surveys].sort((a, b) => Number(a.submitted) - Number(b.submitted)),
+  [...surveyStore.surveys].sort((a, b) => {
+    const submittedDiff = Number(a.submitted) - Number(b.submitted)
+    if (submittedDiff !== 0) return submittedDiff
+    if (a.submitted) return 0
+    return (a.endDate ?? '').localeCompare(b.endDate ?? '')
+  }),
 )
+
+function formatEndDate(endDate) {
+  if (!endDate) return ''
+  const [, month, day] = endDate.split('-')
+  return `종료 ${month}.${day}`
+}
 
 function openSurvey(survey) {
   if (survey.submitted) return
@@ -41,6 +52,9 @@ function openSurvey(survey) {
           <div>
             <p class="text-xs text-muted-foreground">{{ survey.className }}</p>
             <p class="text-sm font-semibold text-foreground">{{ survey.courseName }}</p>
+            <p v-if="!survey.submitted && survey.endDate" class="mt-0.5 text-[11px] text-muted-foreground">
+              {{ formatEndDate(survey.endDate) }}
+            </p>
           </div>
           <Badge
             v-if="survey.submitted"
