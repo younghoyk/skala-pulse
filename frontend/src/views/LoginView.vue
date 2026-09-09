@@ -37,18 +37,25 @@ const roles = [
   },
 ]
 
-function handleDemoLogin(role) {
-  if (!role.enabled) return
+const loginError = ref('')
 
-  if (role.key === 'student') {
-    auth.loginAsDemo('student', '데모 교육생')
-    router.push({ name: 'survey-courses' })
-  } else if (role.key === 'instructor') {
-    auth.loginAsDemo('instructor', '데모 교수자')
-    router.push({ name: 'instructor-courses' })
-  } else if (role.key === 'admin') {
-    auth.loginAsDemo('admin', '데모 관리자')
-    router.push({ name: 'admin-dashboard' })
+async function handleDemoLogin(role) {
+  if (!role.enabled) return
+  loginError.value = ''
+
+  try {
+    if (role.key === 'student') {
+      await auth.loginAsDemo('student', '데모 교육생')
+      router.push({ name: 'survey-courses' })
+    } else if (role.key === 'instructor') {
+      await auth.loginAsDemo('instructor', '데모 교수자')
+      router.push({ name: 'instructor-courses' })
+    } else if (role.key === 'admin') {
+      await auth.loginAsDemo('admin', '데모 관리자')
+      router.push({ name: 'admin-dashboard' })
+    }
+  } catch {
+    loginError.value = '로그인에 실패했어요. 서버가 켜져 있는지 확인해주세요.'
   }
 }
 </script>
@@ -63,6 +70,8 @@ function handleDemoLogin(role) {
       <p class="mb-6 text-sm text-muted-foreground">
         원클릭 데모 로그인 — 실제 Slack 로그인은 이후 단계에서 연결됩니다.
       </p>
+
+      <p v-if="loginError" class="mb-4 text-xs font-medium" style="color: var(--danger)">{{ loginError }}</p>
 
       <div class="flex flex-col gap-3">
         <button

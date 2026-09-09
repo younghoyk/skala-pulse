@@ -1,4 +1,5 @@
 <script setup>
+import { onMounted } from 'vue'
 import { roleLabels } from '@/data/mockAdminMembers'
 import { useMembersStore } from '@/stores/members'
 import AdminTopNav from '@/components/admin/AdminTopNav.vue'
@@ -6,6 +7,8 @@ import PageHeader from '@/components/PageHeader.vue'
 
 const store = useMembersStore()
 const { pending, members } = store
+
+onMounted(() => store.loadAll())
 
 function deleteMember(member) {
   if (!confirm(`${member.name}님을 삭제할까요?`)) return
@@ -84,6 +87,7 @@ function deleteMember(member) {
               <select
                 v-model="member.role"
                 class="rounded-md border border-border bg-card px-2 py-1.5 text-xs text-foreground outline-none"
+                @change="store.changeRole(member.id, member.role)"
               >
                 <option v-for="(label, key) in roleLabels" :key="key" :value="key">{{ label }}</option>
               </select>

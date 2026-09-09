@@ -8,11 +8,21 @@ const membersStore = useMembersStore()
 
 const form = reactive({ name: '', email: '', requestedRole: 'student' })
 const submitted = ref(false)
+const submitError = ref('')
 
-function submit() {
+async function submit() {
   if (!form.name.trim() || !form.email.trim()) return
-  membersStore.requestSignup({ name: form.name.trim(), email: form.email.trim(), requestedRole: form.requestedRole })
-  submitted.value = true
+  submitError.value = ''
+  try {
+    await membersStore.requestSignup({
+      name: form.name.trim(),
+      email: form.email.trim(),
+      requestedRole: form.requestedRole,
+    })
+    submitted.value = true
+  } catch {
+    submitError.value = '가입 신청에 실패했어요. 잠시 후 다시 시도해주세요.'
+  }
 }
 </script>
 
@@ -27,6 +37,8 @@ function submit() {
         <p class="mb-6 text-sm text-muted-foreground">
           신청 후 관리자 승인이 완료되면 로그인할 수 있어요.
         </p>
+
+        <p v-if="submitError" class="mb-3 text-xs font-medium" style="color: var(--danger)">{{ submitError }}</p>
 
         <form class="flex flex-col gap-3" @submit.prevent="submit">
           <div>

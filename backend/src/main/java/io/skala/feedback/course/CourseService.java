@@ -36,6 +36,14 @@ public class CourseService {
 	}
 
 	@Transactional
+	public CourseDto updateCourse(Long courseId, CourseUpdateRequest request) {
+		Course course = courseRepository.findById(courseId)
+				.orElseThrow(() -> new NotFoundException("과정을 찾을 수 없어요: " + courseId));
+		course.setLeadInstructor(findMember(request.leadInstructorId()));
+		return CourseDto.from(course);
+	}
+
+	@Transactional
 	public void deleteCourse(Long courseId) {
 		if (!courseRepository.existsById(courseId)) {
 			throw new NotFoundException("과정을 찾을 수 없어요: " + courseId);
@@ -78,8 +86,7 @@ public class CourseService {
 		if (request.endDate() != null) {
 			classGroup.setEndDate(request.endDate());
 		}
-		String leadName = classGroup.getCourse().getLeadInstructor().getName();
-		return ClassDto.from(classGroup, leadName);
+		return ClassDto.from(classGroup, classGroup.getCourse().getLeadInstructor());
 	}
 
 	@Transactional

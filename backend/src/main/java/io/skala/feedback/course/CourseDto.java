@@ -2,13 +2,13 @@ package io.skala.feedback.course;
 
 import java.util.List;
 
-public record CourseDto(Long id, String name, String leadInstructorName, List<ClassDto> classes) {
+public record CourseDto(Long id, String name, Long leadInstructorId, String leadInstructorName, List<ClassDto> classes) {
 
 	static CourseDto from(Course course) {
-		String leadName = course.getLeadInstructor().getName();
+		var lead = course.getLeadInstructor();
 		List<ClassDto> classes = course.getClasses().stream()
-				.map(cls -> ClassDto.from(cls, leadName))
+				.map(cls -> ClassDto.from(cls, lead))
 				.toList();
-		return new CourseDto(course.getId(), course.getName(), leadName, classes);
+		return new CourseDto(course.getId(), course.getName(), lead.getId(), lead.getName(), classes);
 	}
 }

@@ -1,25 +1,46 @@
 <script setup>
-import { reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import AdminTopNav from '@/components/admin/AdminTopNav.vue'
 import PageHeader from '@/components/PageHeader.vue'
-import { mockCourseManagement, instructorOptions, labInstructorFor } from '@/data/mockAdminCourseManagement'
+import { useCoursesStore } from '@/stores/courses'
+import { useMembersStore } from '@/stores/members'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
-const courses = reactive(JSON.parse(JSON.stringify(mockCourseManagement)))
+const coursesStore = useCoursesStore()
+const membersStore = useMembersStore()
+const courses = coursesStore.courses
+
+// 실습/전임교수 선택지는 실제 회원 목록에서 뽑는다 — mock 시절엔 이름 문자열이었지만
+// 이제 진짜 회원 id로 바인딩한다.
+const instructorOptions = computed(() => membersStore.members.filter((m) => m.role === 'instructor'))
+
+onMounted(async () => {
+  if (!membersStore.members.length) await membersStore.loadAll()
+  await coursesStore.loadCourses()
+})
 
 const showNewCourseForm = ref(false)
 const newCourseName = ref('')
 
-function addCourse() {
+async function addCourse() {
   const name = newCourseName.value.trim()
-  if (!name) return
-  courses.push({ id: `course-${Date.now()}`, name, leadInstructorName: instructorOptions[0] ?? '', classes: [] })
+  if (!name || !instructorOptions.value.length) return
+  await coursesStore.addCourse({ name, leadInstructorId: instructorOptions.value[0].id })
   newCourseName.value = ''
   showNewCourseForm.value = false
 }
 
-const newClassForms = reactive({}) // courseId -> { open, name, capacity, format, labInstructorName }
+async function deleteCourse(courseId, courseName) {
+  if (!confirm(`${courseName} 과정을 삭제할까요? 소속된 반도 함께 삭제됩니다.`)) return
+  await coursesStore.deleteCourse(courseId)
+}
+
+async function onLeadInstructorChange(course) {
+  await coursesStore.updateCourse(course.id, { leadInstructorId: course.leadInstructorId })
+}
+
+const newClassForms = reactive({}) // courseId -> { open, name, capacity, format, labInstructorId, startDate, endDate }
 
 function blankClassForm() {
   return {
@@ -27,7 +48,7 @@ function blankClassForm() {
     name: '',
     capacity: 20,
     format: 'zoom',
-    labInstructorName: instructorOptions[0] ?? '',
+    labInstructorId: instructorOptions.value[0]?.id ?? null,
     startDate: '',
     endDate: '',
   }
@@ -37,35 +58,32 @@ function openClassForm(courseId) {
   newClassForms[courseId] = blankClassForm()
 }
 
-function addClass(course) {
+async function addClass(course) {
   const form = newClassForms[course.id]
   if (!form?.name.trim()) return
-  const capacity = Number(form.capacity) || 0
-  course.classes.push({
-    id: `${course.id}-${Date.now()}`,
+  await coursesStore.addClass(course.id, {
     name: form.name.trim(),
-    capacity,
+    capacity: Number(form.capacity) || 0,
     format: form.format,
-    labInstructorName: form.format === 'direct' ? null : form.labInstructorName,
-    startDate: form.startDate,
-    endDate: form.endDate,
-    submission: { submitted: 0, total: capacity },
+    labInstructorId: form.format === 'direct' ? null : form.labInstructorId,
+    startDate: form.startDate || null,
+    endDate: form.endDate || null,
   })
   newClassForms[course.id] = { ...blankClassForm(), open: false }
 }
 
-function deleteClass(course, classId) {
-  const idx = course.classes.findIndex((c) => c.id === classId)
-  if (idx === -1) return
-  if (!confirm(`${course.name} ${course.classes[idx].name}을(를) 삭제할까요?`)) return
-  course.classes.splice(idx, 1)
+async function deleteClass(courseId, cls) {
+  if (!confirm(`${cls.name}을(를) 삭제할까요?`)) return
+  await coursesStore.deleteClass(courseId, cls.id)
 }
 
-function deleteCourse(courseId) {
-  const idx = courses.findIndex((c) => c.id === courseId)
-  if (idx === -1) return
-  if (!confirm(`${courses[idx].name} 과정을 삭제할까요? 소속된 반도 함께 삭제됩니다.`)) return
-  courses.splice(idx, 1)
+function onClassFieldChange(cls, field) {
+  coursesStore.updateClass(cls.id, { [field]: cls[field] })
+}
+
+function onClassFormatChange(cls) {
+  const fields = { format: cls.format }
+  coursesStore.updateClass(cls.id, fields)
 }
 </script>
 
@@ -98,17 +116,20 @@ function deleteCourse(courseId) {
             <label class="flex items-center gap-1.5 text-xs text-muted-foreground">
               전임교수
               <select
-                v-model="course.leadInstructorName"
+                v-model="course.leadInstructorId"
                 class="rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground outline-none"
+                @change="onLeadInstructorChange(course)"
               >
-                <option v-for="name in instructorOptions" :key="name" :value="name">{{ name }}</option>
+                <option v-for="instructor in instructorOptions" :key="instructor.id" :value="instructor.id">
+                  {{ instructor.name }}
+                </option>
               </select>
             </label>
             <button
               type="button"
               class="ml-auto rounded-md border px-2.5 py-1 text-xs font-medium hover:opacity-90"
               style="border-color: var(--danger); color: var(--danger)"
-              @click="deleteCourse(course.id)"
+              @click="deleteCourse(course.id, course.name)"
             >
               과정 삭제
             </button>
@@ -129,6 +150,7 @@ function deleteCourse(courseId) {
                   type="number"
                   min="0"
                   class="w-16 rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground outline-none"
+                  @change="onClassFieldChange(cls, 'capacity')"
                 />
               </label>
 
@@ -137,6 +159,7 @@ function deleteCourse(courseId) {
                 <select
                   v-model="cls.format"
                   class="rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground outline-none"
+                  @change="onClassFormatChange(cls)"
                 >
                   <option value="zoom">줌</option>
                   <option value="direct">직강</option>
@@ -147,12 +170,15 @@ function deleteCourse(courseId) {
                 실습교수
                 <select
                   v-if="cls.format === 'zoom'"
-                  v-model="cls.labInstructorName"
+                  v-model="cls.labInstructorId"
                   class="rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground outline-none"
+                  @change="onClassFieldChange(cls, 'labInstructorId')"
                 >
-                  <option v-for="name in instructorOptions" :key="name" :value="name">{{ name }}</option>
+                  <option v-for="instructor in instructorOptions" :key="instructor.id" :value="instructor.id">
+                    {{ instructor.name }}
+                  </option>
                 </select>
-                <span v-else class="text-foreground">{{ labInstructorFor(course, cls) }} (전임과 동일)</span>
+                <span v-else class="text-foreground">{{ cls.labInstructorName }} (전임과 동일)</span>
               </label>
 
               <label class="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -161,12 +187,14 @@ function deleteCourse(courseId) {
                   v-model="cls.startDate"
                   type="date"
                   class="rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground outline-none"
+                  @change="onClassFieldChange(cls, 'startDate')"
                 />
                 ~
                 <input
                   v-model="cls.endDate"
                   type="date"
                   class="rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground outline-none"
+                  @change="onClassFieldChange(cls, 'endDate')"
                 />
               </label>
 
@@ -178,7 +206,7 @@ function deleteCourse(courseId) {
                 type="button"
                 class="shrink-0 rounded-md border px-2 py-1 text-xs font-medium hover:opacity-90"
                 style="border-color: var(--danger); color: var(--danger)"
-                @click="deleteClass(course, cls.id)"
+                @click="deleteClass(course.id, cls)"
               >
                 삭제
               </button>
@@ -204,10 +232,12 @@ function deleteCourse(courseId) {
               </select>
               <select
                 v-if="newClassForms[course.id].format === 'zoom'"
-                v-model="newClassForms[course.id].labInstructorName"
+                v-model="newClassForms[course.id].labInstructorId"
                 class="rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground outline-none"
               >
-                <option v-for="name in instructorOptions" :key="name" :value="name">{{ name }} (실습)</option>
+                <option v-for="instructor in instructorOptions" :key="instructor.id" :value="instructor.id">
+                  {{ instructor.name }} (실습)
+                </option>
               </select>
               <span v-else class="text-xs text-muted-foreground">실습교수: 전임과 동일</span>
               <input
