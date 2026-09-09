@@ -7,7 +7,7 @@ import { apiFetch } from '@/lib/api'
 // 로그인해서(memberId) 반 정보가 그 회원 걸 그대로 따라온다 — 회원가입 때 이미 반을
 // 골랐으니 로그인 때 또 고르게 하지 않는다. 교수자/관리자는 특정 회원과 안 묶인
 // 자유 입력 데모 로그인 그대로(전임/실습은 로그인이 아니라 반 단위 데이터에 있음,
-// mockInstructorData.js의 myRole 참고).
+// CourseService.myCourses의 myRole 참고).
 export const useAuthStore = defineStore('auth', () => {
   const role = ref(null) // 'student' | 'instructor' | 'admin' | null
   const displayName = ref('')

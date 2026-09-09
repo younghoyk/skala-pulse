@@ -9,8 +9,8 @@ const courseStore = useInstructorCourseStore()
 
 onMounted(() => courseStore.loadMyCourses())
 
-function pickCourse(classId) {
-  courseStore.selectCourse(classId)
+function pickCourse(courseId) {
+  courseStore.selectCourse(courseId)
   router.push({ name: 'instructor-dashboard' })
 }
 
@@ -30,16 +30,18 @@ const roleLabel = { lead: '전임교수', lab: '실습교수' }
       <div class="flex flex-col gap-3">
         <button
           v-for="course in courseStore.myCourses"
-          :key="course.classId"
+          :key="course.courseId"
           type="button"
           class="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3.5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
           @mouseenter="(e) => (e.currentTarget.style.borderColor = 'var(--role-instructor)')"
           @mouseleave="(e) => (e.currentTarget.style.borderColor = '')"
-          @click="pickCourse(course.classId)"
+          @click="pickCourse(course.courseId)"
         >
           <div>
             <div class="flex items-center gap-1.5">
-              <p class="text-xs text-muted-foreground">{{ course.className }}</p>
+              <p class="text-xs text-muted-foreground">
+                {{ course.classes.length > 1 ? `${course.classes.length}개 반` : course.classes[0].className }}
+              </p>
               <span
                 class="rounded-full px-1.5 py-0.5 text-[10px] font-medium"
                 style="background: var(--role-instructor-soft); color: var(--role-instructor)"

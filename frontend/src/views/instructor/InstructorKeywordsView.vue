@@ -1,8 +1,7 @@
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useInstructorCourseStore } from '@/stores/instructorCourse'
-import { mockInstructorFeedbackByCourse } from '@/data/mockInstructorFeedback'
 import InstructorNav from '@/components/instructor/InstructorNav.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import KeywordGraphCard from '@/components/dashboard/KeywordGraphCard.vue'
@@ -10,22 +9,26 @@ import KeywordGraphCard from '@/components/dashboard/KeywordGraphCard.vue'
 const router = useRouter()
 const courseStore = useInstructorCourseStore()
 
-// 헤더는 실제 담당 강의, 키워드 그래프는 아직 분석 도메인 백엔드가 없어서 역할별 mock.
 const real = computed(() => courseStore.selectedCourse)
-const feedback = computed(
-  () => mockInstructorFeedbackByCourse[real.value?.myRole === 'lab' ? 'algo-a' : 'vue-a'],
-)
+const hasKeywords = computed(() => (courseStore.analysis?.keywordGraph.nodes.length ?? 0) > 0)
 
-onMounted(() => {
-  if (!real.value) router.replace({ name: 'instructor-courses' })
-})
+function load() {
+  if (!real.value) {
+    router.replace({ name: 'instructor-courses' })
+    return
+  }
+  courseStore.loadAnalysis(real.value.courseId)
+}
+
+onMounted(load)
+watch(() => real.value?.courseId, load)
 </script>
 
 <template>
   <div v-if="real" class="min-h-svh bg-muted/40 px-4 py-10">
     <div class="mx-auto max-w-3xl">
       <PageHeader
-        :eyebrow="real.className"
+        :eyebrow="courseStore.selectedClassRange"
         :title="`${real.courseName} · 키워드`"
         :back-to="{ name: 'instructor-courses' }"
         back-label="다른 강의 선택"
@@ -34,7 +37,15 @@ onMounted(() => {
 
       <InstructorNav active="keywords" />
 
-      <KeywordGraphCard :graph="feedback.keywordGraph" :positions="feedback.nodePositions" />
+      <p v-if="courseStore.analysisLoading" class="py-10 text-center text-sm text-muted-foreground">불러오는 중...</p>
+      <KeywordGraphCard
+        v-else-if="hasKeywords"
+        :graph="courseStore.analysis.keywordGraph"
+        :positions="courseStore.analysis.keywordPositions"
+      />
+      <div v-else class="rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground shadow-sm">
+        아직 쌓인 피드백이 없어요.
+      </div>
     </div>
   </div>
 </template>

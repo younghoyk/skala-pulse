@@ -20,7 +20,7 @@ onMounted(() => {
   <div v-if="real" class="min-h-svh bg-muted/40 px-4 py-10">
     <div class="mx-auto max-w-3xl">
       <PageHeader
-        :eyebrow="real.className"
+        :eyebrow="courseStore.selectedClassRange"
         :title="`${real.courseName} · 액션 메모`"
         :back-to="{ name: 'instructor-courses' }"
         back-label="다른 강의 선택"

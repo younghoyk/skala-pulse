@@ -6,13 +6,13 @@ import java.util.List;
 
 // 관리자 설문 빌더 백엔드가 아직 없어서(이후 Phase), 모든 반의 설문이 프론트
 // mockSurveys.js에 있던 고정 템플릿 하나를 그대로 공유한다 — 과정마다 다른 문항을
-// 만드는 건 이번 범위 밖.
-final class SurveyBlockTemplate {
+// 만드는 건 이번 범위 밖. analysis 도메인이 항목/태그 id -> label을 재사용하려고 public.
+public final class SurveyBlockTemplate {
 
 	private SurveyBlockTemplate() {
 	}
 
-	static List<SurveyBlockDto> blocks() {
+	public static List<SurveyBlockDto> blocks() {
 		return List.of(
 				new SurveyBlockDto(
 						"rank",

@@ -12,4 +12,6 @@ public interface SurveyRepository extends JpaRepository<Survey, Long> {
 
 	@EntityGraph(attributePaths = {"classGroup", "classGroup.course"})
 	Optional<Survey> findById(Long id);
+
+	List<Survey> findByClassGroupIdIn(List<Long> classGroupIds);
 }
