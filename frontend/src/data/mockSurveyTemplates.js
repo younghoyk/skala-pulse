@@ -1,7 +1,9 @@
 // 관리자 설문 빌더 mock 데이터 — survey-builder-scope 메모리 원칙: 빈 캔버스가 아니라
-// 항상 기본 시드 템플릿으로 시작한다. 순서는 카드순위 → 퀵태그 → 종합평가 → 종료 —
-// 세부 항목을 먼저 되짚어본 다음 마지막에 종합 판단을 내리도록 종합평가를 맨 뒤로
-// 옮겼다(student-survey-flow-refinements 메모리 참고, 설문 설계 원칙상 통상적인 순서).
+// 항상 기본 시드 템플릿으로 시작한다. 순서는 카드순위 → 퀵태그 → 실습교수 점수드래그 →
+// 종합평가 → 종료 — 세부 항목을 먼저 되짚어본 다음 마지막에 종합 판단을 내리도록
+// 종합평가를 맨 뒤로 옮겼다(student-survey-flow-refinements 메모리 참고). 카드순위 항목을
+// "전임/실습" 둘로 쪼개는 대신(항목이 너무 많아짐), 실습교수 몫은 점수드래그 블록을
+// 하나 더 두는 쪽으로 정리했다 — 카드순위의 "강사 소통"은 전임교수 기준으로 남는다.
 // 설문 구조는 강의(과목) 단위(courseId)로 결정되고, 반(class) 단위가 아니다.
 //
 // 노드 데이터 모양은 mockSurveys.js의 학생 설문 블록과 최대한 같게 맞췄다 — 나중에
@@ -39,22 +41,29 @@ function seedTemplate() {
         },
       },
       {
-        id: 'score',
+        id: 'score-lab',
         type: 'score-drag',
         position: { x: 660, y: 160 },
+        data: { question: '실습교수님은 어떠셨나요?' },
+      },
+      {
+        id: 'score',
+        type: 'score-drag',
+        position: { x: 940, y: 160 },
         data: { question: '이번 수업 종합 만족도를 평가해주세요' },
       },
       {
         id: 'end',
         type: 'end',
-        position: { x: 960, y: 160 },
+        position: { x: 1220, y: 160 },
         data: {},
         deletable: false,
       },
     ],
     edges: [
       { id: 'e-rank-tag', source: 'rank', target: 'tag' },
-      { id: 'e-tag-score', source: 'tag', target: 'score' },
+      { id: 'e-tag-scorelab', source: 'tag', target: 'score-lab' },
+      { id: 'e-scorelab-score', source: 'score-lab', target: 'score' },
       { id: 'e-score-end', source: 'score', target: 'end' },
     ],
   }

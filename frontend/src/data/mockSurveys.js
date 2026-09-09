@@ -57,6 +57,13 @@ export const mockSurveys = [
         summaryMaxLength: 100,
       },
       {
+        id: 'score-lab',
+        type: 'score-drag',
+        question: '실습교수님은 어떠셨나요?',
+        min: 0,
+        max: 5,
+      },
+      {
         id: 'score',
         type: 'score-drag',
         question: '이번 수업 종합 만족도를 평가해주세요',
@@ -87,6 +94,13 @@ export const mockSurveys = [
         question: '이번 주 가장 크게 느낀 점을 골라주세요',
         tags: tagsFor(['assignment', 'pace', 'practice', 'material']),
         summaryMaxLength: 100,
+      },
+      {
+        id: 'score-lab',
+        type: 'score-drag',
+        question: '실습교수님은 어떠셨나요?',
+        min: 0,
+        max: 5,
       },
       {
         id: 'score',
