@@ -13,6 +13,7 @@ import AdminCourseKeywordsView from '@/views/admin/AdminCourseKeywordsView.vue'
 import AdminCourseGalleryView from '@/views/admin/AdminCourseGalleryView.vue'
 import AdminImprovementsView from '@/views/admin/AdminImprovementsView.vue'
 import AdminMembersView from '@/views/admin/AdminMembersView.vue'
+import AdminCoursesView from '@/views/admin/AdminCoursesView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -32,6 +33,7 @@ const router = createRouter({
     { path: '/admin/dashboard/:courseId/gallery', name: 'admin-course-gallery', component: AdminCourseGalleryView },
     { path: '/admin/improvements', name: 'admin-improvements', component: AdminImprovementsView },
     { path: '/admin/members', name: 'admin-members', component: AdminMembersView },
+    { path: '/admin/courses', name: 'admin-courses', component: AdminCoursesView },
   ],
 })
 
