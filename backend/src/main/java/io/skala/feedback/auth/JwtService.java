@@ -23,11 +23,15 @@ public class JwtService {
 		this.expirationMinutes = properties.expirationMinutes();
 	}
 
-	public String issueToken(String displayName, Role role) {
+	public String issueToken(String displayName, Role role, String className) {
 		Instant now = Instant.now();
-		return Jwts.builder()
+		var builder = Jwts.builder()
 				.subject(displayName)
-				.claim("role", role.name())
+				.claim("role", role.name());
+		if (className != null) {
+			builder.claim("className", className);
+		}
+		return builder
 				.issuedAt(Date.from(now))
 				.expiration(Date.from(now.plus(expirationMinutes, ChronoUnit.MINUTES)))
 				.signWith(signingKey)
