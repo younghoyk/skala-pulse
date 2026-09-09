@@ -7,6 +7,7 @@ import java.util.Map;
 // 카드가 그대로 소비할 수 있는 모양으로 맞췄다(ScoreBarsCard/RankLeaderboardCard/
 // KeywordGraphCard/FeedbackGalleryCard의 prop 계약).
 public record CourseAnalysisDto(
+		String courseName,
 		List<ClassScoreDto> classScores,
 		Double courseAvgScore,
 		int courseRespondentCount,

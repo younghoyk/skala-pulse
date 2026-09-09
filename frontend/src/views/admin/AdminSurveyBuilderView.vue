@@ -1,9 +1,9 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { VueFlow } from '@vue-flow/core'
 import '@vue-flow/core/dist/style.css'
-import { mockAdminClasses } from '@/data/mockAdminOverview'
+import { useCoursesStore } from '@/stores/courses'
 import {
   mockSurveyTemplatesByCourse,
   blockPalette,
@@ -16,8 +16,10 @@ import { Button } from '@/components/ui/button'
 
 const route = useRoute()
 const courseId = route.params.courseId
+const coursesStore = useCoursesStore()
+onMounted(() => coursesStore.loadCourses())
 const courseName = computed(
-  () => mockAdminClasses.find((c) => c.courseId === courseId)?.courseName ?? '',
+  () => coursesStore.courses.find((c) => String(c.id) === courseId)?.name ?? '',
 )
 
 function buildLabel(node) {
@@ -47,7 +49,12 @@ function styleFor(node) {
 
 // 항상 빈 캔버스가 아니라 기본 시드 템플릿(종합평가→카드순위→퀵태그→종료)에서 시작한다
 // (survey-builder-scope 메모리 원칙). 원본 mock은 건드리지 않게 깊은 복사로 가져온다.
-const template = JSON.parse(JSON.stringify(mockSurveyTemplatesByCourse[courseId]))
+// mockSurveyTemplatesByCourse는 mock 문자열 id('vue' 등)로만 키가 있어서 실제 숫자
+// course id는 못 찾는다 — 셋 다 내용이 같은 시드라 아무 키로나 폴백해도 결과는 동일하다
+// (빌더 저장을 실제로 만드는 건 이번 범위 밖, 크래시만 막는다).
+const template = JSON.parse(
+  JSON.stringify(mockSurveyTemplatesByCourse[courseId] ?? mockSurveyTemplatesByCourse.vue),
+)
 
 const nodes = ref(
   template.nodes.map((n) => {

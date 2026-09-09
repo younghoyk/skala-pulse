@@ -109,7 +109,7 @@ public class AnalysisService {
 		List<GalleryItemDto> gallery = buildGallery(inCourse, course.getClasses());
 
 		return new CourseAnalysisDto(
-				classScores, courseAvg, courseCount, benchmarkAvg, benchmarkCount,
+				course.getName(), classScores, courseAvg, courseCount, benchmarkAvg, benchmarkCount,
 				myLabScore, myLabRespondentCount, rankItems, keywordGraph, positions, gallery);
 	}
 

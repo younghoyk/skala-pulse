@@ -1,61 +1,49 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { mockAdminClasses, aggregateRankItems } from '@/data/mockAdminOverview'
+import { apiFetch } from '@/lib/api'
 import ScoreBarsCard from '@/components/dashboard/ScoreBarsCard.vue'
 import RankLeaderboardCard from '@/components/dashboard/RankLeaderboardCard.vue'
 import AdminCourseNav from '@/components/admin/AdminCourseNav.vue'
 import PageHeader from '@/components/PageHeader.vue'
 
 const route = useRoute()
+const analysis = ref(null)
+const loading = ref(false)
 
-const classes = computed(() => mockAdminClasses.filter((c) => c.courseId === route.params.courseId))
-const otherClasses = computed(() => mockAdminClasses.filter((c) => c.courseId !== route.params.courseId))
-const courseName = computed(() => classes.value[0]?.courseName ?? '')
-
-function average(list) {
-  return list.reduce((sum, c) => sum + c.currentAvg, 0) / list.length
-}
-
-function sumSubmission(list) {
-  return {
-    submitted: list.reduce((sum, c) => sum + c.submission.submitted, 0),
-    total: list.reduce((sum, c) => sum + c.submission.total, 0),
+async function load() {
+  loading.value = true
+  analysis.value = null
+  try {
+    analysis.value = await apiFetch(`/api/courses/${route.params.courseId}/analysis`)
+  } finally {
+    loading.value = false
   }
 }
+
+onMounted(load)
+watch(() => route.params.courseId, load)
 
 const roleColor = getComputedStyle(document.documentElement).getPropertyValue('--role-admin').trim()
 const inkColor = getComputedStyle(document.documentElement).getPropertyValue('--muted-foreground').trim()
 
 // 반마다 막대 + 이 과목 전체 평균 + 다른 과목들을 다 합친 평균(벤치마크) — 인과관계를
-// 계산하거나 연결하지 않고 병치만 한다 (cause-diagnosis-logic 원칙). 반별 제출 현황은
-// 표에 안 보이니 막대에 마우스를 올렸을 때 툴팁으로 보여준다.
-const scoreBars = computed(() => [
-  ...classes.value.map((c) => ({ label: c.className, value: c.currentAvg, color: roleColor, submission: c.submission })),
-  {
-    label: `${courseName.value} 전체`,
-    value: average(classes.value),
-    color: roleColor,
-    submission: sumSubmission(classes.value),
-  },
-  {
-    label: '다른 과목 평균',
-    value: average(otherClasses.value),
-    color: inkColor,
-    submission: sumSubmission(otherClasses.value),
-  },
-])
-
-// 개별 반이 아니라 이 과목 반들의 항목별 순위를 평균 낸 "과목 전체" 순위표 하나.
-const courseRankItems = computed(() => aggregateRankItems(classes.value))
+// 계산하거나 연결하지 않고 병치만 한다 (cause-diagnosis-logic 원칙).
+const scoreBars = computed(() => {
+  if (!analysis.value) return []
+  const bars = analysis.value.classScores.map((c) => ({ label: c.className, value: c.avgScore ?? 0, color: roleColor }))
+  bars.push({ label: `${analysis.value.courseName} 전체`, value: analysis.value.courseAvgScore ?? 0, color: roleColor })
+  bars.push({ label: '다른 과목 평균', value: analysis.value.benchmarkAvgScore ?? 0, color: inkColor })
+  return bars
+})
 </script>
 
 <template>
-  <div class="min-h-svh bg-muted/40 px-4 py-10">
+  <div v-if="analysis" class="min-h-svh bg-muted/40 px-4 py-10">
     <div class="mx-auto max-w-3xl">
       <PageHeader
         eyebrow="시스템 관리자"
-        :title="courseName"
+        :title="analysis.courseName"
         :back-to="{ name: 'admin-dashboard' }"
         back-label="전체 강의 목록으로"
       />
@@ -64,8 +52,12 @@ const courseRankItems = computed(() => aggregateRankItems(classes.value))
 
       <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
         <ScoreBarsCard :bars="scoreBars" />
-        <RankLeaderboardCard :items="courseRankItems" />
+        <RankLeaderboardCard v-if="analysis.rankItems.length" :items="analysis.rankItems" />
+        <div v-else class="rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground shadow-sm">
+          아직 쌓인 설문 응답이 없어요.
+        </div>
       </div>
     </div>
   </div>
+  <p v-else-if="loading" class="py-10 text-center text-sm text-muted-foreground">불러오는 중...</p>
 </template>
