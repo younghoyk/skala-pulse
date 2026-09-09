@@ -14,16 +14,17 @@ import io.skala.feedback.course.ClassGroup;
 import io.skala.feedback.course.Course;
 import io.skala.feedback.course.CourseRepository;
 import io.skala.feedback.survey.SurveyBlockDto;
-import io.skala.feedback.survey.SurveyBlockTemplate;
 import io.skala.feedback.survey.SurveyRepository;
 import io.skala.feedback.survey.SurveyResponse;
 import io.skala.feedback.survey.SurveyResponseRepository;
+import io.skala.feedback.survey.SurveyTemplateService;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.OptionalDouble;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,16 +42,19 @@ public class AnalysisService {
 	private final CourseRepository courseRepository;
 	private final SurveyRepository surveyRepository;
 	private final SurveyResponseRepository surveyResponseRepository;
+	private final SurveyTemplateService surveyTemplateService;
 	private final ObjectMapper objectMapper;
 
 	public AnalysisService(
 			CourseRepository courseRepository,
 			SurveyRepository surveyRepository,
 			SurveyResponseRepository surveyResponseRepository,
+			SurveyTemplateService surveyTemplateService,
 			ObjectMapper objectMapper) {
 		this.courseRepository = courseRepository;
 		this.surveyRepository = surveyRepository;
 		this.surveyResponseRepository = surveyResponseRepository;
+		this.surveyTemplateService = surveyTemplateService;
 		this.objectMapper = objectMapper;
 	}
 
@@ -103,10 +107,10 @@ public class AnalysisService {
 			myLabRespondentCount = (int) inMyLabClass.stream().filter(p -> p.labScore != null).count();
 		}
 
-		List<RankItemDto> rankItems = buildRankItems(inCourse);
-		KeywordGraphDto keywordGraph = buildKeywordGraph(inCourse);
+		List<RankItemDto> rankItems = buildRankItems(inCourse, courseId);
+		KeywordGraphDto keywordGraph = buildKeywordGraph(inCourse, courseId);
 		Map<String, PositionDto> positions = buildPositions(keywordGraph);
-		List<GalleryItemDto> gallery = buildGallery(inCourse, course.getClasses());
+		List<GalleryItemDto> gallery = buildGallery(inCourse, course.getClasses(), courseId);
 
 		return new CourseAnalysisDto(
 				course.getName(), classScores, courseAvg, courseCount, benchmarkAvg, benchmarkCount,
@@ -120,8 +124,8 @@ public class AnalysisService {
 		return new ClassScoreDto(cls.getId(), cls.getName(), avg, count);
 	}
 
-	private List<RankItemDto> buildRankItems(List<ParsedResponse> inCourse) {
-		Map<String, String> itemLabels = itemLabels();
+	private List<RankItemDto> buildRankItems(List<ParsedResponse> inCourse, Long courseId) {
+		Map<String, String> itemLabels = itemLabels(courseId);
 		Map<String, Double> rankSums = new LinkedHashMap<>();
 		Map<String, Integer> rankCounts = new LinkedHashMap<>();
 		for (ParsedResponse p : inCourse) {
@@ -143,8 +147,8 @@ public class AnalysisService {
 				.toList();
 	}
 
-	private KeywordGraphDto buildKeywordGraph(List<ParsedResponse> inCourse) {
-		Map<String, String> tagLabels = tagLabels();
+	private KeywordGraphDto buildKeywordGraph(List<ParsedResponse> inCourse, Long courseId) {
+		Map<String, String> tagLabels = tagLabels(courseId);
 		Map<String, Integer> nodeCounts = new LinkedHashMap<>();
 		Map<String, Integer> edgeCounts = new LinkedHashMap<>();
 
@@ -191,8 +195,8 @@ public class AnalysisService {
 		return positions;
 	}
 
-	private List<GalleryItemDto> buildGallery(List<ParsedResponse> inCourse, List<ClassGroup> classes) {
-		Map<String, String> tagLabels = tagLabels();
+	private List<GalleryItemDto> buildGallery(List<ParsedResponse> inCourse, List<ClassGroup> classes, Long courseId) {
+		Map<String, String> tagLabels = tagLabels(courseId);
 		Map<Long, String> classNames = new LinkedHashMap<>();
 		for (ClassGroup cls : classes) classNames.put(cls.getId(), cls.getName());
 
@@ -209,21 +213,25 @@ public class AnalysisService {
 				.toList();
 	}
 
-	private Map<String, String> itemLabels() {
-		return blockOf("rank").items().stream()
-				.collect(LinkedHashMap::new, (m, i) -> m.put(i.id(), i.label()), Map::putAll);
+	// "rank"/"tag" 예약 id 블록이 이 과정 템플릿에 없을 수 있다(관리자가 지웠거나, 커스텀
+	// 템플릿이 아예 그 블록을 안 씀) — 그럴 땐 빈 맵을 반환해서 순위/키워드가 조용히
+	// 빈 상태가 되게 한다(크래시 없음, 가짜 값 없음).
+	private Map<String, String> itemLabels(Long courseId) {
+		Map<String, String> labels = new LinkedHashMap<>();
+		blockOf(courseId, "rank").ifPresent(b -> b.items().forEach(i -> labels.put(i.id(), i.label())));
+		return labels;
 	}
 
-	private Map<String, String> tagLabels() {
-		return blockOf("tag").tags().stream()
-				.collect(LinkedHashMap::new, (m, t) -> m.put(t.id(), t.label()), Map::putAll);
+	private Map<String, String> tagLabels(Long courseId) {
+		Map<String, String> labels = new LinkedHashMap<>();
+		blockOf(courseId, "tag").ifPresent(b -> b.tags().forEach(t -> labels.put(t.id(), t.label())));
+		return labels;
 	}
 
-	private SurveyBlockDto blockOf(String blockId) {
-		return SurveyBlockTemplate.blocks().stream()
+	private Optional<SurveyBlockDto> blockOf(Long courseId, String blockId) {
+		return surveyTemplateService.blocksForCourse(courseId).stream()
 				.filter(b -> b.id().equals(blockId))
-				.findFirst()
-				.orElseThrow();
+				.findFirst();
 	}
 
 	private Double average(List<ParsedResponse> list, java.util.function.Function<ParsedResponse, Double> f) {

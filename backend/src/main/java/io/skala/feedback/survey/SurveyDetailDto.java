@@ -12,11 +12,11 @@ public record SurveyDetailDto(
 		boolean submitted,
 		List<SurveyBlockDto> blocks) {
 
-	static SurveyDetailDto from(Survey survey) {
+	static SurveyDetailDto from(Survey survey, List<SurveyBlockDto> blocks) {
 		var cls = survey.getClassGroup();
 		boolean submitted = cls.getSubmittedCount() >= cls.getTotalCount();
 		return new SurveyDetailDto(
 				survey.getId(), cls.getId(), cls.getCourse().getName(), cls.getName(), cls.getEndDate(),
-				submitted, SurveyBlockTemplate.blocks());
+				submitted, blocks);
 	}
 }

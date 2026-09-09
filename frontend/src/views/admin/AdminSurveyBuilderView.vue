@@ -3,13 +3,9 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { VueFlow } from '@vue-flow/core'
 import '@vue-flow/core/dist/style.css'
+import { apiFetch } from '@/lib/api'
 import { useCoursesStore } from '@/stores/courses'
-import {
-  mockSurveyTemplatesByCourse,
-  blockPalette,
-  blockTypeColors,
-  blockTypeLabels,
-} from '@/data/mockSurveyTemplates'
+import { seedTemplate, blockPalette, blockTypeColors, blockTypeLabels } from '@/data/mockSurveyTemplates'
 import AdminCourseNav from '@/components/admin/AdminCourseNav.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { Button } from '@/components/ui/button'
@@ -17,7 +13,6 @@ import { Button } from '@/components/ui/button'
 const route = useRoute()
 const courseId = route.params.courseId
 const coursesStore = useCoursesStore()
-onMounted(() => coursesStore.loadCourses())
 const courseName = computed(
   () => coursesStore.courses.find((c) => String(c.id) === courseId)?.name ?? '',
 )
@@ -47,29 +42,43 @@ function styleFor(node) {
   }
 }
 
-// 항상 빈 캔버스가 아니라 기본 시드 템플릿(종합평가→카드순위→퀵태그→종료)에서 시작한다
-// (survey-builder-scope 메모리 원칙). 원본 mock은 건드리지 않게 깊은 복사로 가져온다.
-// mockSurveyTemplatesByCourse는 mock 문자열 id('vue' 등)로만 키가 있어서 실제 숫자
-// course id는 못 찾는다 — 셋 다 내용이 같은 시드라 아무 키로나 폴백해도 결과는 동일하다
-// (빌더 저장을 실제로 만드는 건 이번 범위 밖, 크래시만 막는다).
-const template = JSON.parse(
-  JSON.stringify(mockSurveyTemplatesByCourse[courseId] ?? mockSurveyTemplatesByCourse.vue),
-)
+const nodes = ref([])
+const edges = ref([])
+const loading = ref(true)
 
-const nodes = ref(
-  template.nodes.map((n) => {
+// 저장된 그래프(백엔드 SurveyTemplateGraphDto: {id,type,position,data})를 VueFlow가
+// 쓰는 모양으로 변환 — end 노드만 삭제 불가로 고정한다(deletable은 서버에 저장 안 함,
+// type으로부터 매번 다시 계산).
+function hydrate(graph) {
+  nodes.value = graph.nodes.map((n) => {
     const node = {
       id: n.id,
       position: n.position,
       data: { blockType: n.type, ...n.data },
-      deletable: n.deletable !== false,
+      deletable: n.type !== 'end',
     }
     node.label = buildLabel(node)
     node.style = styleFor(node)
     return node
-  }),
-)
-const edges = ref(template.edges)
+  })
+  edges.value = graph.edges.map((e) => ({ id: e.id, source: e.source, target: e.target }))
+}
+
+// 항상 빈 캔버스가 아니라 기본 시드 템플릿에서 시작한다(survey-builder-scope 메모리
+// 원칙) — 이 과정에 저장된 커스텀 템플릿이 있으면 그걸, 없으면(null) 로컬 시드를 쓴다.
+async function load() {
+  loading.value = true
+  await coursesStore.loadCourses()
+  let graph = null
+  try {
+    graph = await apiFetch(`/api/courses/${courseId}/survey-template`)
+  } catch {
+    graph = null
+  }
+  hydrate(graph ?? seedTemplate())
+  loading.value = false
+}
+onMounted(load)
 
 const selectedNodeId = ref(null)
 const selectedNode = computed(() => nodes.value.find((n) => n.id === selectedNodeId.value) ?? null)
@@ -135,10 +144,34 @@ function removeTag(node, index) {
   node.data.tags.splice(index, 1)
 }
 
-const saved = ref(false)
-function save() {
-  saved.value = true
-  setTimeout(() => (saved.value = false), 1500)
+// nodes/edges를 백엔드 SurveyTemplateGraphDto 모양({id,type,position,data})으로 되돌린다 —
+// blockType은 data 안이 아니라 node.type으로, label/style(VueFlow 렌더용 파생값)은 뺀다.
+function toStoredGraph() {
+  return {
+    nodes: nodes.value.map((n) => {
+      const { blockType, ...data } = n.data
+      return { id: n.id, type: blockType, position: n.position, data }
+    }),
+    edges: edges.value.map((e) => ({ id: e.id, source: e.source, target: e.target })),
+  }
+}
+
+const saveState = ref('idle') // 'idle' | 'saving' | 'saved' | 'error'
+const saveErrorMessage = ref('')
+
+async function save() {
+  saveState.value = 'saving'
+  saveErrorMessage.value = ''
+  try {
+    await apiFetch(`/api/courses/${courseId}/survey-template`, { method: 'PUT', body: toStoredGraph() })
+    saveState.value = 'saved'
+    setTimeout(() => {
+      if (saveState.value === 'saved') saveState.value = 'idle'
+    }, 1500)
+  } catch (err) {
+    saveState.value = 'error'
+    saveErrorMessage.value = err.message ?? '저장에 실패했어요.'
+  }
 }
 </script>
 
@@ -154,83 +187,95 @@ function save() {
 
       <AdminCourseNav :course-id="courseId" active="builder" />
 
-      <div class="mb-3 flex flex-wrap items-center gap-2">
-        <span class="text-xs text-muted-foreground">블록 추가:</span>
-        <button
-          v-for="b in blockPalette"
-          :key="b.type"
-          type="button"
-          class="rounded-full border px-3 py-1 text-xs font-medium hover:bg-muted"
-          :style="{ borderColor: blockTypeColors[b.type].border, color: blockTypeColors[b.type].border }"
-          @click="addNode(b.type)"
-        >
-          + {{ b.label }}
-        </button>
-        <div class="ml-auto flex items-center gap-2">
-          <span v-if="saved" class="text-xs font-medium" style="color: var(--role-student)">저장됨</span>
-          <Button size="sm" style="background: var(--role-admin)" class="text-white hover:opacity-90" @click="save">
-            저장
-          </Button>
+      <p v-if="loading" class="py-10 text-center text-sm text-muted-foreground">불러오는 중...</p>
+      <template v-else>
+        <div class="mb-3 flex flex-wrap items-center gap-2">
+          <span class="text-xs text-muted-foreground">블록 추가:</span>
+          <button
+            v-for="b in blockPalette"
+            :key="b.type"
+            type="button"
+            class="rounded-full border px-3 py-1 text-xs font-medium hover:bg-muted"
+            :style="{ borderColor: blockTypeColors[b.type].border, color: blockTypeColors[b.type].border }"
+            @click="addNode(b.type)"
+          >
+            + {{ b.label }}
+          </button>
+          <div class="ml-auto flex items-center gap-2">
+            <span v-if="saveState === 'saved'" class="text-xs font-medium" style="color: var(--role-student)">저장됨</span>
+            <span v-else-if="saveState === 'error'" class="text-xs font-medium" style="color: var(--danger)">
+              {{ saveErrorMessage }}
+            </span>
+            <Button
+              size="sm"
+              :disabled="saveState === 'saving'"
+              style="background: var(--role-admin)"
+              class="text-white hover:opacity-90"
+              @click="save"
+            >
+              {{ saveState === 'saving' ? '저장 중...' : '저장' }}
+            </Button>
+          </div>
         </div>
-      </div>
 
-      <div class="grid grid-cols-1 gap-4 md:grid-cols-[1fr_280px]">
-        <div class="overflow-hidden rounded-xl border border-border bg-card" style="height: 480px">
-          <VueFlow v-model:nodes="nodes" v-model:edges="edges" fit-view-on-init @connect="onConnect" @node-click="onNodeClick" />
-        </div>
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-[1fr_280px]">
+          <div class="overflow-hidden rounded-xl border border-border bg-card" style="height: 480px">
+            <VueFlow v-model:nodes="nodes" v-model:edges="edges" fit-view-on-init @connect="onConnect" @node-click="onNodeClick" />
+          </div>
 
-        <div class="rounded-xl border border-border bg-card p-4">
-          <template v-if="selectedNode">
-            <p class="mb-3 text-xs font-semibold" :style="{ color: blockTypeColors[selectedNode.data.blockType].border }">
-              {{ blockTypeLabels[selectedNode.data.blockType] }}
-            </p>
+          <div class="rounded-xl border border-border bg-card p-4">
+            <template v-if="selectedNode">
+              <p class="mb-3 text-xs font-semibold" :style="{ color: blockTypeColors[selectedNode.data.blockType].border }">
+                {{ blockTypeLabels[selectedNode.data.blockType] }}
+              </p>
 
-            <template v-if="selectedNode.data.blockType !== 'end'">
-              <label class="mb-1 block text-xs text-muted-foreground">질문</label>
-              <textarea
-                v-model="selectedNode.data.question"
-                rows="2"
-                class="mb-3 w-full rounded-md border border-border px-2 py-1.5 text-sm outline-none"
-                @input="refreshLabel(selectedNode)"
-              />
+              <template v-if="selectedNode.data.blockType !== 'end'">
+                <label class="mb-1 block text-xs text-muted-foreground">질문</label>
+                <textarea
+                  v-model="selectedNode.data.question"
+                  rows="2"
+                  class="mb-3 w-full rounded-md border border-border px-2 py-1.5 text-sm outline-none"
+                  @input="refreshLabel(selectedNode)"
+                />
 
-              <template v-if="selectedNode.data.blockType === 'card-rank'">
-                <label class="mb-1 block text-xs text-muted-foreground">항목</label>
-                <div v-for="(item, i) in selectedNode.data.items" :key="item.id" class="mb-1.5 flex items-center gap-1.5">
-                  <input v-model="item.label" class="flex-1 rounded-md border border-border px-2 py-1 text-xs outline-none" />
-                  <button type="button" class="text-xs text-muted-foreground hover:text-foreground" @click="removeItem(selectedNode, i)">
-                    ✕
+                <template v-if="selectedNode.data.blockType === 'card-rank'">
+                  <label class="mb-1 block text-xs text-muted-foreground">항목</label>
+                  <div v-for="(item, i) in selectedNode.data.items" :key="item.id" class="mb-1.5 flex items-center gap-1.5">
+                    <input v-model="item.label" class="flex-1 rounded-md border border-border px-2 py-1 text-xs outline-none" />
+                    <button type="button" class="text-xs text-muted-foreground hover:text-foreground" @click="removeItem(selectedNode, i)">
+                      ✕
+                    </button>
+                  </div>
+                  <button type="button" class="text-xs underline" style="color: var(--role-admin)" @click="addItem(selectedNode)">
+                    + 항목 추가
                   </button>
-                </div>
-                <button type="button" class="text-xs underline" style="color: var(--role-admin)" @click="addItem(selectedNode)">
-                  + 항목 추가
-                </button>
-              </template>
+                </template>
 
-              <template v-else-if="selectedNode.data.blockType === 'quick-tag'">
-                <label class="mb-1 block text-xs text-muted-foreground">태그</label>
-                <div v-for="(tag, i) in selectedNode.data.tags" :key="tag.id" class="mb-1.5 flex items-center gap-1.5">
-                  <input v-model="tag.label" class="flex-1 rounded-md border border-border px-2 py-1 text-xs outline-none" />
-                  <button type="button" class="text-xs text-muted-foreground hover:text-foreground" @click="removeTag(selectedNode, i)">
-                    ✕
+                <template v-else-if="selectedNode.data.blockType === 'quick-tag'">
+                  <label class="mb-1 block text-xs text-muted-foreground">태그</label>
+                  <div v-for="(tag, i) in selectedNode.data.tags" :key="tag.id" class="mb-1.5 flex items-center gap-1.5">
+                    <input v-model="tag.label" class="flex-1 rounded-md border border-border px-2 py-1 text-xs outline-none" />
+                    <button type="button" class="text-xs text-muted-foreground hover:text-foreground" @click="removeTag(selectedNode, i)">
+                      ✕
+                    </button>
+                  </div>
+                  <button type="button" class="text-xs underline" style="color: var(--role-admin)" @click="addTag(selectedNode)">
+                    + 태그 추가
                   </button>
-                </div>
-                <button type="button" class="text-xs underline" style="color: var(--role-admin)" @click="addTag(selectedNode)">
-                  + 태그 추가
-                </button>
-              </template>
+                </template>
 
-              <Button size="sm" variant="outline" class="mt-4 w-full" @click="deleteNode(selectedNode.id)">이 블록 삭제</Button>
+                <Button size="sm" variant="outline" class="mt-4 w-full" @click="deleteNode(selectedNode.id)">이 블록 삭제</Button>
+              </template>
+              <p v-else class="text-xs text-muted-foreground">설문이 끝나는 지점이에요. 삭제할 수 없어요.</p>
             </template>
-            <p v-else class="text-xs text-muted-foreground">설문이 끝나는 지점이에요. 삭제할 수 없어요.</p>
-          </template>
-          <p v-else class="text-sm text-muted-foreground">캔버스에서 블록을 클릭하면 여기서 내용을 편집할 수 있어요.</p>
+            <p v-else class="text-sm text-muted-foreground">캔버스에서 블록을 클릭하면 여기서 내용을 편집할 수 있어요.</p>
+          </div>
         </div>
-      </div>
 
-      <p class="mt-3 text-xs text-muted-foreground">
-        블록의 연결점을 드래그해서 다른 블록에 이으면 순서가 바뀝니다. 조건부 분기는 다음 단계에서 추가돼요.
-      </p>
+        <p class="mt-3 text-xs text-muted-foreground">
+          블록의 연결점을 드래그해서 다른 블록에 이으면 순서가 바뀝니다. 조건부 분기는 다음 단계에서 추가돼요.
+        </p>
+      </template>
     </div>
   </div>
 </template>

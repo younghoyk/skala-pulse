@@ -7,6 +7,8 @@ import { Progress } from '@/components/ui/progress'
 import ScoreDragBlock from '@/components/survey/ScoreDragBlock.vue'
 import CardRankBlock from '@/components/survey/CardRankBlock.vue'
 import QuickTagBlock from '@/components/survey/QuickTagBlock.vue'
+import ShortAnswerBlock from '@/components/survey/ShortAnswerBlock.vue'
+import LongAnswerBlock from '@/components/survey/LongAnswerBlock.vue'
 
 const props = defineProps({ id: { type: String, required: true } })
 const router = useRouter()
@@ -114,6 +116,20 @@ async function goNext() {
           :tags="currentBlock.tags"
           :summary-max-length="currentBlock.summaryMaxLength"
           :model-value="answers[currentBlock.id] ?? null"
+          @update:model-value="(v) => setAnswer(currentBlock.id, v)"
+        />
+        <ShortAnswerBlock
+          v-else-if="currentBlock.type === 'short-answer'"
+          :key="currentBlock.id"
+          :question="currentBlock.question"
+          :model-value="answers[currentBlock.id] ?? ''"
+          @update:model-value="(v) => setAnswer(currentBlock.id, v)"
+        />
+        <LongAnswerBlock
+          v-else-if="currentBlock.type === 'long-answer'"
+          :key="currentBlock.id"
+          :question="currentBlock.question"
+          :model-value="answers[currentBlock.id] ?? ''"
           @update:model-value="(v) => setAnswer(currentBlock.id, v)"
         />
       </div>

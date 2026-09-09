@@ -13,14 +13,17 @@ public class SurveyService {
 
 	private final SurveyRepository surveyRepository;
 	private final SurveyResponseRepository surveyResponseRepository;
+	private final SurveyTemplateService surveyTemplateService;
 	private final ObjectMapper objectMapper;
 
 	public SurveyService(
 			SurveyRepository surveyRepository,
 			SurveyResponseRepository surveyResponseRepository,
+			SurveyTemplateService surveyTemplateService,
 			ObjectMapper objectMapper) {
 		this.surveyRepository = surveyRepository;
 		this.surveyResponseRepository = surveyResponseRepository;
+		this.surveyTemplateService = surveyTemplateService;
 		this.objectMapper = objectMapper;
 	}
 
@@ -30,7 +33,8 @@ public class SurveyService {
 
 	public SurveyDetailDto getDetail(Long surveyId) {
 		Survey survey = findSurvey(surveyId);
-		return SurveyDetailDto.from(survey);
+		List<SurveyBlockDto> blocks = surveyTemplateService.blocksForCourse(courseId(survey));
+		return SurveyDetailDto.from(survey, blocks);
 	}
 
 	@Transactional
@@ -49,11 +53,16 @@ public class SurveyService {
 			classGroup.setSubmittedCount(classGroup.getSubmittedCount() + 1);
 		}
 
-		return SurveyDetailDto.from(survey);
+		List<SurveyBlockDto> blocks = surveyTemplateService.blocksForCourse(courseId(survey));
+		return SurveyDetailDto.from(survey, blocks);
 	}
 
 	private Survey findSurvey(Long id) {
 		return surveyRepository.findById(id)
 				.orElseThrow(() -> new NotFoundException("설문을 찾을 수 없어요: " + id));
+	}
+
+	private Long courseId(Survey survey) {
+		return survey.getClassGroup().getCourse().getId();
 	}
 }
