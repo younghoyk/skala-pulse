@@ -9,7 +9,23 @@ import { Input } from '@/components/ui/input'
 
 const coursesStore = useCoursesStore()
 const membersStore = useMembersStore()
-const courses = coursesStore.courses
+
+const searchKeyword = ref('')
+
+// 종료일 오름차순 하나로 "이미 끝난 과정 먼저(가장 오래전에 끝난 것부터), 그다음 아직
+// 안 끝난 과정(가장 가까운 일정부터)"이 자연히 함께 성립한다 — AdminDashboardView.vue와
+// 같은 기준. 정렬/필터된 배열이라도 원소는 스토어의 같은 반응형 객체라 인라인 편집은
+// 그대로 동작한다.
+const courses = computed(() => {
+  const keyword = searchKeyword.value.trim().toLowerCase()
+  return coursesStore.courses
+    .filter((course) => !keyword || course.name.toLowerCase().includes(keyword))
+    .sort((a, b) => {
+      const dateA = a.classes[0]?.endDate ?? '9999-12-31'
+      const dateB = b.classes[0]?.endDate ?? '9999-12-31'
+      return dateA.localeCompare(dateB)
+    })
+})
 
 // 실습/전임교수 선택지는 실제 회원 목록에서 뽑는다 — mock 시절엔 이름 문자열이었지만
 // 이제 진짜 회원 id로 바인딩한다.
@@ -100,6 +116,8 @@ function onClassFormatChange(cls) {
 
       <AdminTopNav active="courses" />
 
+      <Input v-model="searchKeyword" placeholder="과정 이름으로 검색" class="mb-4" />
+
       <div v-if="showNewCourseForm" class="mb-6 flex items-center gap-2 rounded-lg border border-border bg-card p-3">
         <Input v-model="newCourseName" placeholder="새 과정 이름 (예: 프론트엔드 심화)" class="flex-1" @keydown.enter="addCourse" />
         <Button size="sm" style="background: var(--role-admin)" class="text-white hover:opacity-90" @click="addCourse">
@@ -108,6 +126,7 @@ function onClassFormatChange(cls) {
       </div>
 
       <div class="flex flex-col gap-8">
+        <p v-if="!courses.length" class="py-6 text-center text-sm text-muted-foreground">검색 결과가 없어요.</p>
         <section v-for="course in courses" :key="course.id">
           <div class="mb-2 flex items-center gap-3">
             <h2 class="text-sm font-semibold text-foreground">{{ course.name }}</h2>
