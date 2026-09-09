@@ -2,23 +2,18 @@
 import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSurveyStore } from '@/stores/survey'
-import { Badge } from '@/components/ui/badge'
+import { useAuthStore } from '@/stores/auth'
 import PageHeader from '@/components/PageHeader.vue'
+
+const CLASS_OPTIONS = ['1반', '2반', '3반', '4반', '5반']
 
 const router = useRouter()
 const surveyStore = useSurveyStore()
+const auth = useAuthStore()
 
 onMounted(() => surveyStore.loadSurveys())
 
-// 안 한 설문이 위로, 그중에서는 수업 종료일이 임박한(빠른) 반이 위로.
-const sortedSurveys = computed(() =>
-  [...surveyStore.surveys].sort((a, b) => {
-    const submittedDiff = Number(a.submitted) - Number(b.submitted)
-    if (submittedDiff !== 0) return submittedDiff
-    if (a.submitted) return 0
-    return (a.endDate ?? '').localeCompare(b.endDate ?? '')
-  }),
-)
+const actionableSurveys = computed(() => surveyStore.actionableSurveys)
 
 function formatEndDate(endDate) {
   if (!endDate) return ''
@@ -27,7 +22,6 @@ function formatEndDate(endDate) {
 }
 
 function openSurvey(survey) {
-  if (survey.submitted) return
   router.push({ name: 'survey', params: { id: survey.id } })
 }
 </script>
@@ -35,49 +29,69 @@ function openSurvey(survey) {
 <template>
   <div class="flex min-h-svh justify-center bg-muted/40 px-4 py-10">
     <div class="w-full max-w-md">
-      <PageHeader
-        eyebrow="교육생"
-        title="수강 중인 강의"
-        description="강의 하나당 설문 하나예요. 제출 여부가 바로 표시돼요."
-        accent-var="--role-student"
-      />
+      <template v-if="!auth.studentClassName">
+        <PageHeader
+          eyebrow="교육생"
+          title="반을 선택해주세요"
+          description="본인이 속한 반의 설문만 보여드려요."
+          accent-var="--role-student"
+        />
+        <div class="grid grid-cols-3 gap-3">
+          <button
+            v-for="c in CLASS_OPTIONS"
+            :key="c"
+            type="button"
+            class="rounded-lg border border-border bg-card px-4 py-6 text-sm font-semibold text-foreground shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+            @click="auth.setStudentClassName(c)"
+          >
+            {{ c }}
+          </button>
+        </div>
+      </template>
 
-      <div class="flex flex-col gap-3">
+      <template v-else>
+        <PageHeader
+          eyebrow="교육생"
+          title="제출할 설문"
+          description="수업이 끝났는데 아직 제출하지 않은 설문만 보여드려요."
+          accent-var="--role-student"
+        />
         <button
-          v-for="survey in sortedSurveys"
-          :key="survey.id"
           type="button"
-          :disabled="survey.submitted"
-          class="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3.5 text-left shadow-sm transition"
-          :class="survey.submitted ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:-translate-y-0.5 hover:shadow-md'"
-          :style="!survey.submitted ? { '--hover': 'var(--role-student)' } : {}"
-          @mouseenter="(e) => !survey.submitted && (e.currentTarget.style.borderColor = 'var(--role-student)')"
-          @mouseleave="(e) => (e.currentTarget.style.borderColor = '')"
-          @click="openSurvey(survey)"
+          class="mb-4 text-xs underline"
+          style="color: var(--role-student)"
+          @click="auth.setStudentClassName(null)"
         >
-          <div>
-            <p class="text-xs text-muted-foreground">{{ survey.className }}</p>
-            <p class="text-sm font-semibold text-foreground">{{ survey.courseName }}</p>
-            <p v-if="!survey.submitted && survey.endDate" class="mt-0.5 text-[11px] text-muted-foreground">
-              {{ formatEndDate(survey.endDate) }}
-            </p>
-          </div>
-          <Badge
-            v-if="survey.submitted"
-            variant="secondary"
-            class="shrink-0 text-[10px]"
-          >
-            제출 완료
-          </Badge>
-          <span
-            v-else
-            class="shrink-0 rounded-md px-2.5 py-1 text-xs font-medium text-white"
-            style="background: var(--role-student)"
-          >
-            설문 하기
-          </span>
+          다른 반 보기 (현재 {{ auth.studentClassName }})
         </button>
-      </div>
+
+        <div class="flex flex-col gap-3">
+          <button
+            v-for="survey in actionableSurveys"
+            :key="survey.id"
+            type="button"
+            class="flex cursor-pointer items-center justify-between rounded-lg border border-border bg-card px-4 py-3.5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+            @mouseenter="(e) => (e.currentTarget.style.borderColor = 'var(--role-student)')"
+            @mouseleave="(e) => (e.currentTarget.style.borderColor = '')"
+            @click="openSurvey(survey)"
+          >
+            <div>
+              <p class="text-xs text-muted-foreground">{{ survey.className }}</p>
+              <p class="text-sm font-semibold text-foreground">{{ survey.courseName }}</p>
+              <p class="mt-0.5 text-[11px] text-muted-foreground">{{ formatEndDate(survey.endDate) }}</p>
+            </div>
+            <span
+              class="shrink-0 rounded-md px-2.5 py-1 text-xs font-medium text-white"
+              style="background: var(--role-student)"
+            >
+              설문 하기
+            </span>
+          </button>
+          <p v-if="!actionableSurveys.length" class="py-6 text-center text-sm text-muted-foreground">
+            지금 제출할 설문이 없어요.
+          </p>
+        </div>
+      </template>
     </div>
   </div>
 </template>

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 const router = useRouter()
 const surveyStore = useSurveyStore()
 
-const nextSurveyId = computed(() => surveyStore.nextPendingSurveyId)
+const nextSurveyId = computed(() => surveyStore.nextActionableSurveyId)
 
 function goToSurveyList() {
   router.push({ name: 'survey-courses' })

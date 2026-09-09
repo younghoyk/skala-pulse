@@ -11,6 +11,9 @@ export const useAuthStore = defineStore('auth', () => {
   const role = ref(null) // 'student' | 'instructor' | 'admin' | null
   const displayName = ref('')
   const token = ref('')
+  // 데모 학생 로그인은 실제 회원과 안 묶여있어서, 설문 목록을 "내 반"으로 거르려면
+  // 로그인 후 한 번 반을 고르게 하고 그 선택을 세션 동안만 들고 있는다.
+  const studentClassName = ref(null)
 
   async function loginAsDemo(nextRole, name) {
     const data = await apiFetch('/api/auth/demo-login', {
@@ -22,11 +25,16 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = data.token
   }
 
+  function setStudentClassName(name) {
+    studentClassName.value = name
+  }
+
   function logout() {
     role.value = null
     displayName.value = ''
     token.value = ''
+    studentClassName.value = null
   }
 
-  return { role, displayName, token, loginAsDemo, logout }
+  return { role, displayName, token, studentClassName, loginAsDemo, setStudentClassName, logout }
 })
