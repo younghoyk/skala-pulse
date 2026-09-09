@@ -1,7 +1,7 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import AdminTopNav from '@/components/admin/AdminTopNav.vue'
-import { mockCourseManagement, instructorOptions } from '@/data/mockAdminCourseManagement'
+import { mockCourseManagement, instructorOptions, labInstructorFor } from '@/data/mockAdminCourseManagement'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
@@ -13,20 +13,20 @@ const newCourseName = ref('')
 function addCourse() {
   const name = newCourseName.value.trim()
   if (!name) return
-  courses.push({ id: `course-${Date.now()}`, name, classes: [] })
+  courses.push({ id: `course-${Date.now()}`, name, leadInstructorName: instructorOptions[0] ?? '', classes: [] })
   newCourseName.value = ''
   showNewCourseForm.value = false
 }
 
-const newClassForms = reactive({}) // courseId -> { open, name, capacity, leadInstructorName, labInstructorName }
+const newClassForms = reactive({}) // courseId -> { open, name, capacity, format, labInstructorName }
 
 function blankClassForm() {
   return {
     open: true,
     name: '',
     capacity: 20,
-    leadInstructorName: instructorOptions[0] ?? '',
-    labInstructorName: instructorOptions[1] ?? instructorOptions[0] ?? '',
+    format: 'zoom',
+    labInstructorName: instructorOptions[0] ?? '',
   }
 }
 
@@ -42,8 +42,8 @@ function addClass(course) {
     id: `${course.id}-${Date.now()}`,
     name: form.name.trim(),
     capacity,
-    leadInstructorName: form.leadInstructorName,
-    labInstructorName: form.labInstructorName,
+    format: form.format,
+    labInstructorName: form.format === 'direct' ? null : form.labInstructorName,
     submission: { submitted: 0, total: capacity },
   })
   newClassForms[course.id] = { ...blankClassForm(), open: false }
@@ -60,7 +60,9 @@ function addClass(course) {
         </div>
         <Button size="sm" variant="outline" @click="showNewCourseForm = !showNewCourseForm">+ 새 과정 추가</Button>
       </div>
-      <p class="mb-5 text-xs text-muted-foreground">반 총원 설정, 담당 강사 배정, 반별 제출 현황(카운트만)을 관리합니다.</p>
+      <p class="mb-5 text-xs text-muted-foreground">
+        전임교수는 과목 단위(모든 반 공통), 실습교수는 반 단위입니다. 직강 반은 전임교수가 실습도 겸해요.
+      </p>
 
       <AdminTopNav active="courses" />
 
@@ -73,7 +75,18 @@ function addClass(course) {
 
       <div class="flex flex-col gap-8">
         <section v-for="course in courses" :key="course.id">
-          <h2 class="mb-2 text-sm font-semibold text-foreground">{{ course.name }}</h2>
+          <div class="mb-2 flex items-center gap-3">
+            <h2 class="text-sm font-semibold text-foreground">{{ course.name }}</h2>
+            <label class="flex items-center gap-1.5 text-xs text-muted-foreground">
+              전임교수
+              <select
+                v-model="course.leadInstructorName"
+                class="rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground outline-none"
+              >
+                <option v-for="name in instructorOptions" :key="name" :value="name">{{ name }}</option>
+              </select>
+            </label>
+          </div>
 
           <div class="flex flex-col gap-2">
             <div
@@ -94,23 +107,26 @@ function addClass(course) {
               </label>
 
               <label class="flex items-center gap-1.5 text-xs text-muted-foreground">
-                전임교수
+                수업 방식
                 <select
-                  v-model="cls.leadInstructorName"
+                  v-model="cls.format"
                   class="rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground outline-none"
                 >
-                  <option v-for="name in instructorOptions" :key="name" :value="name">{{ name }}</option>
+                  <option value="zoom">줌</option>
+                  <option value="direct">직강</option>
                 </select>
               </label>
 
               <label class="flex items-center gap-1.5 text-xs text-muted-foreground">
                 실습교수
                 <select
+                  v-if="cls.format === 'zoom'"
                   v-model="cls.labInstructorName"
                   class="rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground outline-none"
                 >
                   <option v-for="name in instructorOptions" :key="name" :value="name">{{ name }}</option>
                 </select>
+                <span v-else class="text-foreground">{{ labInstructorFor(course, cls) }} (전임과 동일)</span>
               </label>
 
               <span class="ml-auto shrink-0 font-mono text-xs text-muted-foreground">
@@ -130,17 +146,20 @@ function addClass(course) {
                 />
               </label>
               <select
-                v-model="newClassForms[course.id].leadInstructorName"
+                v-model="newClassForms[course.id].format"
                 class="rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground outline-none"
               >
-                <option v-for="name in instructorOptions" :key="name" :value="name">{{ name }} (전임)</option>
+                <option value="zoom">줌</option>
+                <option value="direct">직강</option>
               </select>
               <select
+                v-if="newClassForms[course.id].format === 'zoom'"
                 v-model="newClassForms[course.id].labInstructorName"
                 class="rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground outline-none"
               >
                 <option v-for="name in instructorOptions" :key="name" :value="name">{{ name }} (실습)</option>
               </select>
+              <span v-else class="text-xs text-muted-foreground">실습교수: 전임과 동일</span>
               <Button size="sm" style="background: var(--role-admin)" class="text-white hover:opacity-90" @click="addClass(course)">
                 추가
               </Button>

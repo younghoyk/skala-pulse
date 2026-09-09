@@ -13,9 +13,11 @@
 //
 // score(종합점수)와 별개로 labScore(실습교수 점수)가 있다 — 전임교수는 score+rankItems로
 // 만든 전체 종합 대시보드를, 실습교수는 labScore 하나만 보게 나뉜다(InstructorDashboardView
-// 참고). 전임/실습은 로그인 시점이 아니라 **반마다 다른 역할**이라(mockAdminCourseManagement.js
-// 의 leadInstructorName/labInstructorName 참고 — 같은 사람이 반마다 다르게 배정됨) 여기
-// 반별로 `myRole`을 갖는다. 아래 데모 교수자는 정민지 기준 — vue-a에선 전임, algo-a에선 실습.
+// 참고). 전임/실습은 로그인 시점이 아니라 **반마다 다른 역할**이다: 전임교수는 과목 단위로
+// 고정(mockAdminCourseManagement.js의 leadInstructorName)이지만, 실습교수는 반 단위로
+// 따로 배정되거나(줌 수업) 전임교수 본인이 겸한다(직강) — 그래서 같은 사람도 어느 반이냐에
+// 따라 전임/실습이 갈린다. 여기 반별로 `myRole`을 갖는다. 데모 교수자는 정민지 기준 —
+// vue-a(Vue.js 전임)에선 전임, algo-a(알고리즘 전임은 최유준, 정민지는 실습 배정)에선 실습.
 
 export const mockInstructorCourses = {
   'vue-a': {
