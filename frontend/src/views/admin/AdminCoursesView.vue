@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
+import { ChevronRight } from '@lucide/vue'
 import AdminTopNav from '@/components/admin/AdminTopNav.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { useCoursesStore } from '@/stores/courses'
@@ -30,6 +31,17 @@ const courses = computed(() => {
 // 실습/전임교수 선택지는 실제 회원 목록에서 뽑는다 — mock 시절엔 이름 문자열이었지만
 // 이제 진짜 회원 id로 바인딩한다.
 const instructorOptions = computed(() => membersStore.members.filter((m) => m.role === 'instructor'))
+
+// 과정 34개 x 반 5개를 한 화면에 전부 펼쳐두면 너무 길어져서, 기본은 접어두고
+// 펼친 과정만 반 목록을 보여준다.
+const expandedCourses = ref(new Set())
+function toggleCourse(courseId) {
+  if (expandedCourses.value.has(courseId)) {
+    expandedCourses.value.delete(courseId)
+  } else {
+    expandedCourses.value.add(courseId)
+  }
+}
 
 onMounted(async () => {
   if (!membersStore.members.length) await membersStore.loadAll()
@@ -129,8 +141,26 @@ function onClassFormatChange(cls) {
         <p v-if="!courses.length" class="py-6 text-center text-sm text-muted-foreground">검색 결과가 없어요.</p>
         <section v-for="course in courses" :key="course.id">
           <div class="mb-2 flex items-center gap-3">
-            <h2 class="text-sm font-semibold text-foreground">{{ course.name }}</h2>
-            <label class="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <button
+              type="button"
+              class="flex shrink-0 items-center justify-center rounded-md p-0.5 text-muted-foreground transition hover:bg-muted"
+              :aria-label="expandedCourses.has(course.id) ? '접기' : '펼치기'"
+              @click="toggleCourse(course.id)"
+            >
+              <ChevronRight
+                class="h-4 w-4 transition-transform"
+                :style="{ transform: expandedCourses.has(course.id) ? 'rotate(90deg)' : 'rotate(0deg)' }"
+              />
+            </button>
+            <button
+              type="button"
+              class="text-sm font-semibold text-foreground hover:underline"
+              @click="toggleCourse(course.id)"
+            >
+              {{ course.name }}
+            </button>
+            <span class="text-xs text-muted-foreground">{{ course.classes.length }}개 반</span>
+            <label class="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground">
               전임교수
               <select
                 v-model="course.leadInstructorId"
@@ -144,7 +174,7 @@ function onClassFormatChange(cls) {
             </label>
             <button
               type="button"
-              class="ml-auto rounded-md border px-2.5 py-1 text-xs font-medium hover:opacity-90"
+              class="rounded-md border px-2.5 py-1 text-xs font-medium hover:opacity-90"
               style="border-color: var(--danger); color: var(--danger)"
               @click="deleteCourse(course.id, course.name)"
             >
@@ -152,7 +182,7 @@ function onClassFormatChange(cls) {
             </button>
           </div>
 
-          <div class="flex flex-col gap-2">
+          <div v-if="expandedCourses.has(course.id)" class="flex flex-col gap-2">
             <div
               v-for="cls in course.classes"
               :key="cls.id"
@@ -252,15 +282,15 @@ function onClassFormatChange(cls) {
                 추가
               </Button>
             </div>
-            <button
+            <Button
               v-else
-              type="button"
-              class="self-start text-xs font-medium underline"
-              style="color: var(--role-admin)"
+              size="sm"
+              variant="outline"
+              class="self-start"
               @click="openClassForm(course.id)"
             >
               + 반 추가
-            </button>
+            </Button>
           </div>
         </section>
       </div>
