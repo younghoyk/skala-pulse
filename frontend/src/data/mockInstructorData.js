@@ -10,6 +10,10 @@
 // student-survey-flow-refinements 메모리 3번 참고. 그래서 종합점수는 여러 기수를
 // 이어붙인 추이 그래프가 아니라, 이번 기수의 "반 평균 vs 전체 익명 벤치마크" 2개 막대만
 // 보여준다. rankItems의 "지난 기간"은 같은 반(A반)의 직전 기수 결과를 뜻한다.
+//
+// score(종합점수)와 별개로 labScore(실습교수 점수)가 있다 — 전임교수는 score+rankItems로
+// 만든 전체 종합 대시보드를, 실습교수는 labScore 하나만 보게 나뉜다(InstructorDashboardView
+// 참고, auth.instructorType 기준).
 
 export const mockInstructorCourses = {
   'vue-a': {
@@ -20,6 +24,7 @@ export const mockInstructorCourses = {
     lowSampleThreshold: 5,
 
     score: { classAvg: 3.2, benchmarkAvg: 3.8, respondentCount: 23 },
+    labScore: { value: 2.8, respondentCount: 23 },
 
     rankItems: [
       { id: 'assignment', label: '과제 난이도', avgRank: 2.0, previousAvgRank: 2.4 },
@@ -40,6 +45,7 @@ export const mockInstructorCourses = {
     lowSampleThreshold: 5,
 
     score: { classAvg: 4.2, benchmarkAvg: 3.8, respondentCount: 17 },
+    labScore: { value: 4.0, respondentCount: 17 },
 
     rankItems: [
       { id: 'assignment', label: '과제 난이도', avgRank: 1.8, previousAvgRank: 2.0 },

@@ -5,16 +5,19 @@ import { ref } from 'vue'
 export const useAuthStore = defineStore('auth', () => {
   const role = ref(null) // 'student' | 'instructor' | 'admin' | null
   const displayName = ref('')
+  const instructorType = ref(null) // 'lead'(전임) | 'lab'(실습) | null — role이 'instructor'일 때만 의미 있음
 
-  function loginAsDemo(nextRole, name) {
+  function loginAsDemo(nextRole, name, nextInstructorType = null) {
     role.value = nextRole
     displayName.value = name
+    instructorType.value = nextInstructorType
   }
 
   function logout() {
     role.value = null
     displayName.value = ''
+    instructorType.value = null
   }
 
-  return { role, displayName, loginAsDemo, logout }
+  return { role, displayName, instructorType, loginAsDemo, logout }
 })
