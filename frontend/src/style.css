@@ -121,10 +121,12 @@
     --role-student-soft: #e2f3ea;
     --role-instructor: #b8730f;
     --role-instructor-soft: #faecd6;
-    --role-admin: #574bd0;
-    --role-admin-soft: #eae7fb;
+    --role-admin: #8747d2;
+    --role-admin-soft: #f0e6fa;
     --danger: #b3413e;
     --danger-soft: #fbe4e3;
+    --brand: #8747d2;
+    --brand-soft: #f0e6fa;
 }
 
 .dark {
@@ -132,10 +134,12 @@
     --role-student-soft: #163526;
     --role-instructor: #e2a53f;
     --role-instructor-soft: #3a2a10;
-    --role-admin: #9a90f2;
-    --role-admin-soft: #2a2555;
+    --role-admin: #b28ee8;
+    --role-admin-soft: #322151;
     --danger: #e58581;
     --danger-soft: #3d201f;
+    --brand: #b28ee8;
+    --brand-soft: #322151;
 }
 
 @layer base {
