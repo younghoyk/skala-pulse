@@ -96,6 +96,10 @@ function handleDemoLogin(role) {
           </span>
         </button>
       </div>
+
+      <RouterLink :to="{ name: 'signup' }" class="mt-4 block text-center text-xs underline text-muted-foreground">
+        계정이 없으신가요? 회원가입
+      </RouterLink>
     </div>
   </div>
 </template>

@@ -1,27 +1,14 @@
 <script setup>
-import { reactive } from 'vue'
+import { roleLabels } from '@/data/mockAdminMembers'
+import { useMembersStore } from '@/stores/members'
 import AdminTopNav from '@/components/admin/AdminTopNav.vue'
-import { mockPendingSignups, mockMembers, roleLabels } from '@/data/mockAdminMembers'
 
-const pending = reactive([...mockPendingSignups])
-const members = reactive([...mockMembers])
-
-function approve(signup) {
-  const idx = pending.findIndex((p) => p.id === signup.id)
-  if (idx === -1) return
-  pending.splice(idx, 1)
-  members.unshift({ id: signup.id, name: signup.name, email: signup.email, role: signup.requestedRole })
-}
-
-function reject(id) {
-  const idx = pending.findIndex((p) => p.id === id)
-  if (idx !== -1) pending.splice(idx, 1)
-}
+const store = useMembersStore()
+const { pending, members } = store
 
 function deleteMember(member) {
   if (!confirm(`${member.name}님을 삭제할까요?`)) return
-  const idx = members.findIndex((m) => m.id === member.id)
-  if (idx !== -1) members.splice(idx, 1)
+  store.deleteMember(member)
 }
 </script>
 
@@ -63,14 +50,14 @@ function deleteMember(member) {
                 type="button"
                 class="rounded-md px-2.5 py-1 text-xs font-medium text-white hover:opacity-90"
                 style="background: var(--role-admin)"
-                @click="approve(signup)"
+                @click="store.approve(signup)"
               >
                 승인
               </button>
               <button
                 type="button"
                 class="rounded-md border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-muted"
-                @click="reject(signup.id)"
+                @click="store.reject(signup.id)"
               >
                 거절
               </button>
