@@ -20,7 +20,7 @@ const sortedSurveys = computed(() =>
 function formatEndDate(endDate) {
   if (!endDate) return ''
   const [, month, day] = endDate.split('-')
-  return `종료 ${month}.${day}`
+  return `수업 종료일 ${month}.${day}`
 }
 
 function openSurvey(survey) {
