@@ -34,9 +34,17 @@ public class PendingSignup {
 	@Column(name = "requested_role", nullable = false)
 	private Role requestedRole;
 
-	public PendingSignup(String name, String email, Role requestedRole) {
+	@Column(name = "class_name")
+	private String className;
+
+	@Column(name = "serial_number")
+	private String serialNumber;
+
+	public PendingSignup(String name, String email, Role requestedRole, String className, String serialNumber) {
 		this.name = name;
 		this.email = email;
 		this.requestedRole = requestedRole;
+		this.className = className;
+		this.serialNumber = serialNumber;
 	}
 }

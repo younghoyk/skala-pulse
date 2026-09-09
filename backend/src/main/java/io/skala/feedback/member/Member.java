@@ -34,9 +34,24 @@ public class Member {
 	@Column(nullable = false)
 	private Role role;
 
+	// 교육생만 해당 — 어느 반(1반~5반) 소속인지, 이미 배정된 일련번호. 교수자/관리자는 null.
+	@Column(name = "class_name")
+	private String className;
+
+	@Column(name = "serial_number")
+	private String serialNumber;
+
 	public Member(String name, String email, Role role) {
 		this.name = name;
 		this.email = email;
 		this.role = role;
+	}
+
+	public Member(String name, String email, Role role, String className, String serialNumber) {
+		this.name = name;
+		this.email = email;
+		this.role = role;
+		this.className = className;
+		this.serialNumber = serialNumber;
 	}
 }

@@ -31,15 +31,30 @@ public class MemberService {
 		if (request.requestedRole() == Role.ADMIN) {
 			throw new IllegalArgumentException("관리자 역할은 가입 신청으로 받을 수 없어요.");
 		}
-		PendingSignup signup = new PendingSignup(request.name(), request.email(), request.requestedRole());
+		// 교육생은 실제로 반 하나에 소속돼있고 이미 배정된 일련번호가 있다 — 필수로 받는다.
+		// 교수자는 특정 반 소속이 아니라(여러 반을 겸함) 해당 없음, 값이 와도 저장하지 않는다.
+		boolean isStudent = request.requestedRole() == Role.STUDENT;
+		if (isStudent && (isBlank(request.className()) || isBlank(request.serialNumber()))) {
+			throw new IllegalArgumentException("교육생은 반과 일련번호를 입력해야 해요.");
+		}
+		PendingSignup signup = new PendingSignup(
+				request.name(), request.email(), request.requestedRole(),
+				isStudent ? request.className() : null,
+				isStudent ? request.serialNumber() : null);
 		return PendingSignupDto.from(pendingSignupRepository.save(signup));
+	}
+
+	private static boolean isBlank(String value) {
+		return value == null || value.isBlank();
 	}
 
 	@Transactional
 	public MemberDto approve(Long signupId) {
 		PendingSignup signup = pendingSignupRepository.findById(signupId)
 				.orElseThrow(() -> new NotFoundException("가입 신청을 찾을 수 없어요: " + signupId));
-		Member member = new Member(signup.getName(), signup.getEmail(), signup.getRequestedRole());
+		Member member = new Member(
+				signup.getName(), signup.getEmail(), signup.getRequestedRole(),
+				signup.getClassName(), signup.getSerialNumber());
 		Member saved = memberRepository.save(member);
 		pendingSignupRepository.delete(signup);
 		return MemberDto.from(saved);

@@ -36,7 +36,12 @@ function deleteMember(member) {
             class="flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3 shadow-sm"
           >
             <div>
-              <p class="text-sm font-medium text-foreground">{{ signup.name }}</p>
+              <p class="text-sm font-medium text-foreground">
+                {{ signup.name }}
+                <span v-if="signup.className" class="ml-1 text-xs font-normal text-muted-foreground">
+                  · {{ signup.className }} {{ signup.serialNumber }}번
+                </span>
+              </p>
               <p class="text-xs text-muted-foreground">{{ signup.email }}</p>
             </div>
             <div class="flex items-center gap-2">
@@ -80,7 +85,12 @@ function deleteMember(member) {
             class="flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3 shadow-sm"
           >
             <div>
-              <p class="text-sm font-medium text-foreground">{{ member.name }}</p>
+              <p class="text-sm font-medium text-foreground">
+                {{ member.name }}
+                <span v-if="member.className" class="ml-1 text-xs font-normal text-muted-foreground">
+                  · {{ member.className }} {{ member.serialNumber }}번
+                </span>
+              </p>
               <p class="text-xs text-muted-foreground">{{ member.email }}</p>
             </div>
             <div class="flex items-center gap-2">

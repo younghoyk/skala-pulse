@@ -5,10 +5,16 @@ import { apiFetch } from '@/lib/api'
 // 백엔드 role은 대문자(STUDENT/INSTRUCTOR/ADMIN)라, 기존 소문자 컨벤션(roleLabels 등
 // mockAdminMembers.js가 그대로 쓰임)이 안 깨지게 스토어 경계에서 변환한다.
 function memberFromApi(m) {
-  return { id: m.id, name: m.name, email: m.email, role: m.role.toLowerCase() }
+  return {
+    id: m.id, name: m.name, email: m.email, role: m.role.toLowerCase(),
+    className: m.className, serialNumber: m.serialNumber,
+  }
 }
 function signupFromApi(s) {
-  return { id: s.id, name: s.name, email: s.email, requestedRole: s.requestedRole.toLowerCase() }
+  return {
+    id: s.id, name: s.name, email: s.email, requestedRole: s.requestedRole.toLowerCase(),
+    className: s.className, serialNumber: s.serialNumber,
+  }
 }
 
 export const useMembersStore = defineStore('members', () => {
@@ -24,10 +30,10 @@ export const useMembersStore = defineStore('members', () => {
     pending.splice(0, pending.length, ...pendingRes.map(signupFromApi))
   }
 
-  async function requestSignup({ name, email, requestedRole }) {
+  async function requestSignup({ name, email, requestedRole, className, serialNumber }) {
     const created = await apiFetch('/api/members/signup', {
       method: 'POST',
-      body: { name, email, requestedRole: requestedRole.toUpperCase() },
+      body: { name, email, requestedRole: requestedRole.toUpperCase(), className, serialNumber },
     })
     pending.push(signupFromApi(created))
   }

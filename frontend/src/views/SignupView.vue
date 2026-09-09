@@ -6,18 +6,23 @@ import { Input } from '@/components/ui/input'
 
 const membersStore = useMembersStore()
 
-const form = reactive({ name: '', email: '', requestedRole: 'student' })
+const CLASS_OPTIONS = ['1반', '2반', '3반', '4반', '5반']
+
+const form = reactive({ name: '', email: '', requestedRole: 'student', className: CLASS_OPTIONS[0], serialNumber: '' })
 const submitted = ref(false)
 const submitError = ref('')
 
 async function submit() {
   if (!form.name.trim() || !form.email.trim()) return
+  if (form.requestedRole === 'student' && !form.serialNumber.trim()) return
   submitError.value = ''
   try {
     await membersStore.requestSignup({
       name: form.name.trim(),
       email: form.email.trim(),
       requestedRole: form.requestedRole,
+      className: form.requestedRole === 'student' ? form.className : null,
+      serialNumber: form.requestedRole === 'student' ? form.serialNumber.trim() : null,
     })
     submitted.value = true
   } catch {
@@ -59,6 +64,22 @@ async function submit() {
               <option value="instructor">교수자 / 매니저</option>
             </select>
           </div>
+
+          <template v-if="form.requestedRole === 'student'">
+            <div>
+              <label class="mb-1 block text-xs font-medium text-muted-foreground">반</label>
+              <select
+                v-model="form.className"
+                class="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground outline-none"
+              >
+                <option v-for="c in CLASS_OPTIONS" :key="c" :value="c">{{ c }}</option>
+              </select>
+            </div>
+            <div>
+              <label class="mb-1 block text-xs font-medium text-muted-foreground">일련번호</label>
+              <Input v-model="form.serialNumber" placeholder="예: 07" required />
+            </div>
+          </template>
 
           <Button type="submit" class="mt-2 text-white hover:opacity-90" style="background: var(--role-admin)">
             가입 신청하기
