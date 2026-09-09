@@ -10,10 +10,8 @@ const surveyStore = useSurveyStore()
 
 const nextSurveyId = computed(() => surveyStore.nextPendingSurveyId)
 
-function continueToNext() {
-  if (nextSurveyId.value) {
-    router.push({ name: 'survey', params: { id: nextSurveyId.value } })
-  }
+function goToSurveyList() {
+  router.push({ name: 'survey-courses' })
 }
 </script>
 
@@ -42,8 +40,8 @@ function continueToNext() {
 
       <template v-if="nextSurveyId">
         <p class="mb-3 text-sm text-muted-foreground">아직 제출하지 않은 다른 수업 설문이 남아있어요.</p>
-        <Button style="background: var(--role-student)" class="text-white hover:opacity-90" @click="continueToNext">
-          다음 설문 이어하기
+        <Button style="background: var(--role-student)" class="text-white hover:opacity-90" @click="goToSurveyList">
+          설문 목록으로
         </Button>
       </template>
       <template v-else>

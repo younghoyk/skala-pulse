@@ -2,12 +2,10 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { useSurveyStore } from '@/stores/survey'
 import { Badge } from '@/components/ui/badge'
 
 const router = useRouter()
 const auth = useAuthStore()
-const surveyStore = useSurveyStore()
 const hoveredKey = ref(null)
 
 const roles = [
@@ -44,8 +42,7 @@ function handleDemoLogin(role) {
 
   if (role.key === 'student') {
     auth.loginAsDemo('student', '데모 교육생')
-    const firstSurveyId = surveyStore.nextPendingSurveyId
-    if (firstSurveyId) router.push({ name: 'survey', params: { id: firstSurveyId } })
+    router.push({ name: 'survey-courses' })
   } else if (role.key === 'instructor') {
     auth.loginAsDemo('instructor', '데모 교수자')
     router.push({ name: 'instructor-courses' })

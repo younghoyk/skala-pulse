@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '@/views/LoginView.vue'
+import SurveyCoursesView from '@/views/survey/SurveyCoursesView.vue'
 import SurveyRunnerView from '@/views/survey/SurveyRunnerView.vue'
 import SurveyCompleteView from '@/views/survey/SurveyCompleteView.vue'
 import InstructorCoursesView from '@/views/instructor/InstructorCoursesView.vue'
@@ -21,6 +22,7 @@ const router = createRouter({
   routes: [
     { path: '/', redirect: '/login' },
     { path: '/login', name: 'login', component: LoginView },
+    { path: '/survey', name: 'survey-courses', component: SurveyCoursesView },
     { path: '/survey/:id', name: 'survey', component: SurveyRunnerView, props: true },
     { path: '/survey/complete', name: 'survey-complete', component: SurveyCompleteView },
     { path: '/instructor/courses', name: 'instructor-courses', component: InstructorCoursesView },
