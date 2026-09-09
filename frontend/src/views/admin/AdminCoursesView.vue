@@ -18,10 +18,20 @@ function addCourse() {
   showNewCourseForm.value = false
 }
 
-const newClassForms = reactive({}) // courseId -> { open, name, capacity, instructorName }
+const newClassForms = reactive({}) // courseId -> { open, name, capacity, leadInstructorName, labInstructorName }
+
+function blankClassForm() {
+  return {
+    open: true,
+    name: '',
+    capacity: 20,
+    leadInstructorName: instructorOptions[0] ?? '',
+    labInstructorName: instructorOptions[1] ?? instructorOptions[0] ?? '',
+  }
+}
 
 function openClassForm(courseId) {
-  newClassForms[courseId] = { open: true, name: '', capacity: 20, instructorName: instructorOptions[0] ?? '' }
+  newClassForms[courseId] = blankClassForm()
 }
 
 function addClass(course) {
@@ -32,10 +42,11 @@ function addClass(course) {
     id: `${course.id}-${Date.now()}`,
     name: form.name.trim(),
     capacity,
-    instructorName: form.instructorName,
+    leadInstructorName: form.leadInstructorName,
+    labInstructorName: form.labInstructorName,
     submission: { submitted: 0, total: capacity },
   })
-  newClassForms[course.id] = { open: false, name: '', capacity: 20, instructorName: instructorOptions[0] ?? '' }
+  newClassForms[course.id] = { ...blankClassForm(), open: false }
 }
 </script>
 
@@ -83,9 +94,19 @@ function addClass(course) {
               </label>
 
               <label class="flex items-center gap-1.5 text-xs text-muted-foreground">
-                담당 강사
+                전임교수
                 <select
-                  v-model="cls.instructorName"
+                  v-model="cls.leadInstructorName"
+                  class="rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground outline-none"
+                >
+                  <option v-for="name in instructorOptions" :key="name" :value="name">{{ name }}</option>
+                </select>
+              </label>
+
+              <label class="flex items-center gap-1.5 text-xs text-muted-foreground">
+                실습교수
+                <select
+                  v-model="cls.labInstructorName"
                   class="rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground outline-none"
                 >
                   <option v-for="name in instructorOptions" :key="name" :value="name">{{ name }}</option>
@@ -109,10 +130,16 @@ function addClass(course) {
                 />
               </label>
               <select
-                v-model="newClassForms[course.id].instructorName"
+                v-model="newClassForms[course.id].leadInstructorName"
                 class="rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground outline-none"
               >
-                <option v-for="name in instructorOptions" :key="name" :value="name">{{ name }}</option>
+                <option v-for="name in instructorOptions" :key="name" :value="name">{{ name }} (전임)</option>
+              </select>
+              <select
+                v-model="newClassForms[course.id].labInstructorName"
+                class="rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground outline-none"
+              >
+                <option v-for="name in instructorOptions" :key="name" :value="name">{{ name }} (실습)</option>
               </select>
               <Button size="sm" style="background: var(--role-admin)" class="text-white hover:opacity-90" @click="addClass(course)">
                 추가
