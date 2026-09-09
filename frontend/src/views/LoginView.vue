@@ -20,18 +20,12 @@ const roles = [
     enabled: true,
   },
   {
-    key: 'instructor-lead',
-    label: '전임교수',
-    sub: 'Lead Instructor',
-    desc: '담당 강의의 전체 종합 대시보드를 확인합니다',
-    accentVar: '--role-instructor',
-    enabled: true,
-  },
-  {
-    key: 'instructor-lab',
-    label: '실습교수',
-    sub: 'Lab Instructor',
-    desc: '담당 실습 만족도만 확인합니다',
+    key: 'instructor',
+    label: '교수자 / 매니저',
+    sub: 'Instructor',
+    // 전임/실습은 로그인 시점에 고정되는 게 아니라 반(강의)마다 다른 역할이라
+    // (같은 사람이 이 반에선 전임, 저 반에선 실습일 수 있음) 강의 선택 후 화면에서 갈린다.
+    desc: '담당 강의를 고르면 그 반에서의 역할(전임/실습)에 맞는 대시보드를 확인합니다',
     accentVar: '--role-instructor',
     enabled: true,
   },
@@ -52,11 +46,8 @@ function handleDemoLogin(role) {
     auth.loginAsDemo('student', '데모 교육생')
     const firstSurveyId = surveyStore.nextPendingSurveyId
     if (firstSurveyId) router.push({ name: 'survey', params: { id: firstSurveyId } })
-  } else if (role.key === 'instructor-lead') {
-    auth.loginAsDemo('instructor', '데모 전임교수', 'lead')
-    router.push({ name: 'instructor-courses' })
-  } else if (role.key === 'instructor-lab') {
-    auth.loginAsDemo('instructor', '데모 실습교수', 'lab')
+  } else if (role.key === 'instructor') {
+    auth.loginAsDemo('instructor', '데모 교수자')
     router.push({ name: 'instructor-courses' })
   } else if (role.key === 'admin') {
     auth.loginAsDemo('admin', '데모 관리자')

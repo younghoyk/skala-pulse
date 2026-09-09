@@ -13,7 +13,9 @@
 //
 // score(종합점수)와 별개로 labScore(실습교수 점수)가 있다 — 전임교수는 score+rankItems로
 // 만든 전체 종합 대시보드를, 실습교수는 labScore 하나만 보게 나뉜다(InstructorDashboardView
-// 참고, auth.instructorType 기준).
+// 참고). 전임/실습은 로그인 시점이 아니라 **반마다 다른 역할**이라(mockAdminCourseManagement.js
+// 의 leadInstructorName/labInstructorName 참고 — 같은 사람이 반마다 다르게 배정됨) 여기
+// 반별로 `myRole`을 갖는다. 아래 데모 교수자는 정민지 기준 — vue-a에선 전임, algo-a에선 실습.
 
 export const mockInstructorCourses = {
   'vue-a': {
@@ -22,6 +24,7 @@ export const mockInstructorCourses = {
     className: 'SKALA 3기 · A반',
     classShortLabel: 'A반',
     lowSampleThreshold: 5,
+    myRole: 'lead',
 
     score: { classAvg: 3.2, benchmarkAvg: 3.8, respondentCount: 23 },
     labScore: { value: 2.8, respondentCount: 23 },
@@ -43,6 +46,7 @@ export const mockInstructorCourses = {
     className: 'SKALA 3기 · A반',
     classShortLabel: 'A반',
     lowSampleThreshold: 5,
+    myRole: 'lab',
 
     score: { classAvg: 4.2, benchmarkAvg: 3.8, respondentCount: 17 },
     labScore: { value: 4.0, respondentCount: 17 },

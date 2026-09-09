@@ -16,6 +16,8 @@ function pickCourse(id) {
 function latestScore(course) {
   return course.score.classAvg
 }
+
+const roleLabel = { lead: '전임교수', lab: '실습교수' }
 </script>
 
 <template>
@@ -37,7 +39,15 @@ function latestScore(course) {
           @click="pickCourse(course.id)"
         >
           <div>
-            <p class="text-xs text-muted-foreground">{{ course.className }}</p>
+            <div class="flex items-center gap-1.5">
+              <p class="text-xs text-muted-foreground">{{ course.className }}</p>
+              <span
+                class="rounded-full px-1.5 py-0.5 text-[10px] font-medium"
+                style="background: var(--role-instructor-soft); color: var(--role-instructor)"
+              >
+                {{ roleLabel[course.myRole] }}
+              </span>
+            </div>
             <p class="text-sm font-semibold text-foreground">{{ course.courseName }}</p>
             <p class="mt-0.5 text-xs text-muted-foreground">
               제출 {{ course.submission.submitted }}명 / {{ course.submission.total }}명

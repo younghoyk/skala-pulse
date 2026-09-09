@@ -2,7 +2,6 @@
 import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Badge } from '@/components/ui/badge'
-import { useAuthStore } from '@/stores/auth'
 import { useInstructorCourseStore } from '@/stores/instructorCourse'
 import { mockInstructorCourses } from '@/data/mockInstructorData'
 import ScoreBarsCard from '@/components/dashboard/ScoreBarsCard.vue'
@@ -10,11 +9,12 @@ import RankLeaderboardCard from '@/components/dashboard/RankLeaderboardCard.vue'
 import InstructorNav from '@/components/instructor/InstructorNav.vue'
 
 const router = useRouter()
-const auth = useAuthStore()
 const courseStore = useInstructorCourseStore()
 
 const data = computed(() => mockInstructorCourses[courseStore.selectedCourseId] ?? null)
-const isLabInstructor = computed(() => auth.instructorType === 'lab')
+// 전임/실습은 로그인 정보가 아니라 이 반에서의 역할(myRole)로 정한다 — 같은 사람이
+// 다른 반에서는 다른 역할일 수 있어서, 강의를 선택할 때마다 다시 계산된다.
+const isLabInstructor = computed(() => data.value?.myRole === 'lab')
 
 // 실습교수는 본인 점수 막대 1개만, 전임교수는 종합점수(반평균 vs 벤치마크) 2개 막대.
 const scoreBars = computed(() => {
