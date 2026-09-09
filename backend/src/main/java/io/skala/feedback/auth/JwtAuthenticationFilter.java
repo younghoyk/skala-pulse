@@ -1,6 +1,7 @@
 package io.skala.feedback.auth;
 
 import io.jsonwebtoken.JwtException;
+import io.skala.feedback.common.Role;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,9 +35,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			try {
 				var claims = jwtService.parse(token);
 				String displayName = claims.getSubject();
-				String role = claims.get("role", String.class);
-				var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role));
-				var authentication = new UsernamePasswordAuthenticationToken(displayName, null, authorities);
+				Role role = Role.valueOf(claims.get("role", String.class));
+				Long memberId = claims.get("memberId", Long.class);
+				var principal = new AuthenticatedUser(memberId, displayName, role);
+				var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
+				var authentication = new UsernamePasswordAuthenticationToken(principal, null, authorities);
 				SecurityContextHolder.getContext().setAuthentication(authentication);
 			} catch (JwtException | IllegalArgumentException ignored) {
 				SecurityContextHolder.clearContext();

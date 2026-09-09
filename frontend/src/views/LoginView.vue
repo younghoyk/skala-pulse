@@ -20,7 +20,7 @@ const roles = [
   },
   {
     key: 'instructor',
-    label: '교수자 / 매니저',
+    label: '교수자',
     sub: 'Instructor',
     // 전임/실습은 로그인 시점에 고정되는 게 아니라 반(강의)마다 다른 역할이라
     // (같은 사람이 이 반에선 전임, 저 반에선 실습일 수 있음) 강의 선택 후 화면에서 갈린다.
@@ -41,12 +41,12 @@ const roles = [
 const loginError = ref('')
 
 // 실제 로그인이면 "나"로 바로 들어가지, 누구로 로그인할지 목록에서 고르지 않는다 —
-// 교육생도 교수자/관리자처럼 원클릭이어야 한다. 승인된 교육생 중 한 명으로 자동 배정.
-async function loginAsAnyStudent() {
-  const students = await apiFetch('/api/auth/demo-students')
-  if (!students.length) throw new Error('승인된 교육생이 없어요.')
-  const member = students[0]
-  await auth.loginAsDemo('student', member.name, member.id)
+// 교육생/교수자 둘 다 원클릭이어야 한다. 승인된 회원 중 한 명으로 자동 배정.
+async function loginAsAny(role) {
+  const members = await apiFetch(`/api/auth/demo-${role}s`)
+  if (!members.length) throw new Error(`승인된 ${role === 'student' ? '교육생' : '교수자'}이 없어요.`)
+  const member = members[0]
+  await auth.loginAsDemo(role, member.name, member.id)
 }
 
 async function handleDemoLogin(role) {
@@ -55,10 +55,10 @@ async function handleDemoLogin(role) {
 
   try {
     if (role.key === 'student') {
-      await loginAsAnyStudent()
+      await loginAsAny('student')
       router.push({ name: 'survey-courses' })
     } else if (role.key === 'instructor') {
-      await auth.loginAsDemo('instructor', '데모 교수자')
+      await loginAsAny('instructor')
       router.push({ name: 'instructor-courses' })
     } else if (role.key === 'admin') {
       await auth.loginAsDemo('admin', '데모 관리자')

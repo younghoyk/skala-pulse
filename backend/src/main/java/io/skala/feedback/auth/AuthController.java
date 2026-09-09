@@ -26,6 +26,11 @@ public class AuthController {
 		return authService.listDemoStudents();
 	}
 
+	@GetMapping("/demo-instructors")
+	public List<DemoStudentDto> listDemoInstructors() {
+		return authService.listDemoInstructors();
+	}
+
 	@PostMapping("/demo-login")
 	public TokenResponse demoLogin(@Valid @RequestBody DemoLoginRequest request) {
 		return authService.demoLogin(request);

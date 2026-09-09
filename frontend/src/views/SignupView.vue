@@ -61,7 +61,7 @@ async function submit() {
               class="w-full rounded-md border border-border bg-card px-3 py-2 text-sm text-foreground outline-none"
             >
               <option value="student">교육생</option>
-              <option value="instructor">교수자 / 매니저</option>
+              <option value="instructor">교수자</option>
             </select>
           </div>
 

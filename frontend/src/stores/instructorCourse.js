@@ -1,14 +1,25 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
+import { apiFetch } from '@/lib/api'
 
-// 강사가 담당하는 여러 강의 중 지금 보고 있는 강의 하나 — 대시보드/피드백 화면이
-// 항상 같은 강의를 보여주도록 이 스토어를 공유한다.
+// 강사가 실제로 담당하는 반 목록과, 그중 지금 보고 있는 반 하나 — 대시보드/피드백
+// 화면들이 항상 같은 반을 보여주도록 이 스토어를 공유한다.
 export const useInstructorCourseStore = defineStore('instructorCourse', () => {
-  const selectedCourseId = ref(null)
+  const myCourses = ref([]) // {classId, courseName, className, myRole, submission}
+  const selectedClassId = ref(null)
 
-  function selectCourse(id) {
-    selectedCourseId.value = id
+  const selectedCourse = computed(
+    () => myCourses.value.find((c) => c.classId === selectedClassId.value) ?? null,
+  )
+
+  async function loadMyCourses() {
+    const data = await apiFetch('/api/courses/mine')
+    myCourses.value = data.map((c) => ({ ...c, myRole: c.myRole.toLowerCase() }))
   }
 
-  return { selectedCourseId, selectCourse }
+  function selectCourse(classId) {
+    selectedClassId.value = classId
+  }
+
+  return { myCourses, selectedClassId, selectedCourse, loadMyCourses, selectCourse }
 })

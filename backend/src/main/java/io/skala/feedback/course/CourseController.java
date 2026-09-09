@@ -1,9 +1,11 @@
 package io.skala.feedback.course;
 
+import io.skala.feedback.auth.AuthenticatedUser;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -26,6 +28,13 @@ public class CourseController {
 	@GetMapping("/api/courses")
 	public List<CourseDto> listCourses() {
 		return courseService.listCourses();
+	}
+
+	@GetMapping("/api/courses/mine")
+	@PreAuthorize("hasRole('INSTRUCTOR')")
+	public List<MyCourseDto> myCourses(Authentication authentication) {
+		AuthenticatedUser user = (AuthenticatedUser) authentication.getPrincipal();
+		return courseService.myCourses(user.memberId());
 	}
 
 	@PostMapping("/api/courses")

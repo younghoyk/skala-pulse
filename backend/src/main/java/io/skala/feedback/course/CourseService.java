@@ -4,6 +4,7 @@ import io.skala.feedback.common.NotFoundException;
 import io.skala.feedback.member.Member;
 import io.skala.feedback.member.MemberRepository;
 import java.util.List;
+import java.util.Objects;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +27,25 @@ public class CourseService {
 
 	public List<CourseDto> listCourses() {
 		return courseRepository.findAll().stream().map(CourseDto::from).toList();
+	}
+
+	// 이 회원이 전임(과목 전체 공통) 또는 실습(반 단위, 줌 수업만)으로 배정된 반만 골라낸다 —
+	// 직강 반은 labInstructor가 없어서(전임이 실습도 겸함) LEAD 조건에서만 걸린다.
+	public List<MyCourseDto> myCourses(Long memberId) {
+		return classGroupRepository.findAll().stream()
+				.map(cls -> {
+					boolean isLead = cls.getCourse().getLeadInstructor().getId().equals(memberId);
+					boolean isLab = cls.getFormat() == ClassFormat.ZOOM
+							&& cls.getLabInstructor() != null
+							&& cls.getLabInstructor().getId().equals(memberId);
+					if (!isLead && !isLab) return null;
+					String myRole = isLead ? "LEAD" : "LAB";
+					return new MyCourseDto(
+							cls.getId(), cls.getCourse().getName(), cls.getName(), myRole,
+							new SubmissionDto(cls.getSubmittedCount(), cls.getTotalCount()));
+				})
+				.filter(Objects::nonNull)
+				.toList();
 	}
 
 	@Transactional

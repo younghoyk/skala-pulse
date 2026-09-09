@@ -23,13 +23,16 @@ public class JwtService {
 		this.expirationMinutes = properties.expirationMinutes();
 	}
 
-	public String issueToken(String displayName, Role role, String className) {
+	public String issueToken(String displayName, Role role, String className, Long memberId) {
 		Instant now = Instant.now();
 		var builder = Jwts.builder()
 				.subject(displayName)
 				.claim("role", role.name());
 		if (className != null) {
 			builder.claim("className", className);
+		}
+		if (memberId != null) {
+			builder.claim("memberId", memberId);
 		}
 		return builder
 				.issuedAt(Date.from(now))
