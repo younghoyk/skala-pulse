@@ -1,6 +1,8 @@
 // 관리자 설문 빌더 mock 데이터 — survey-builder-scope 메모리 원칙: 빈 캔버스가 아니라
-// 항상 기본 시드 템플릿(종합평가 → 카드순위 → 퀵태그 → 종료)으로 시작한다. 설문 구조는
-// 강의(과목) 단위(courseId)로 결정되고, 반(class) 단위가 아니다.
+// 항상 기본 시드 템플릿으로 시작한다. 순서는 카드순위 → 퀵태그 → 종합평가 → 종료 —
+// 세부 항목을 먼저 되짚어본 다음 마지막에 종합 판단을 내리도록 종합평가를 맨 뒤로
+// 옮겼다(student-survey-flow-refinements 메모리 참고, 설문 설계 원칙상 통상적인 순서).
+// 설문 구조는 강의(과목) 단위(courseId)로 결정되고, 반(class) 단위가 아니다.
 //
 // 노드 데이터 모양은 mockSurveys.js의 학생 설문 블록과 최대한 같게 맞췄다 — 나중에
 // 빌더가 저장한 구조를 그대로 학생 설문 렌더링에 재사용할 수 있게.
@@ -9,15 +11,9 @@ function seedTemplate() {
   return {
     nodes: [
       {
-        id: 'score',
-        type: 'score-drag',
-        position: { x: 60, y: 160 },
-        data: { question: '이번 수업 종합 만족도를 평가해주세요' },
-      },
-      {
         id: 'rank',
         type: 'card-rank',
-        position: { x: 340, y: 160 },
+        position: { x: 60, y: 160 },
         data: {
           question: '아래 항목을 만족스러웠던 순서대로 배치해주세요',
           items: [
@@ -32,7 +28,7 @@ function seedTemplate() {
       {
         id: 'tag',
         type: 'quick-tag',
-        position: { x: 660, y: 160 },
+        position: { x: 340, y: 160 },
         data: {
           question: '이번 주 가장 크게 느낀 점을 골라주세요',
           tags: [
@@ -43,6 +39,12 @@ function seedTemplate() {
         },
       },
       {
+        id: 'score',
+        type: 'score-drag',
+        position: { x: 660, y: 160 },
+        data: { question: '이번 수업 종합 만족도를 평가해주세요' },
+      },
+      {
         id: 'end',
         type: 'end',
         position: { x: 960, y: 160 },
@@ -51,9 +53,9 @@ function seedTemplate() {
       },
     ],
     edges: [
-      { id: 'e-score-rank', source: 'score', target: 'rank' },
       { id: 'e-rank-tag', source: 'rank', target: 'tag' },
-      { id: 'e-tag-end', source: 'tag', target: 'end' },
+      { id: 'e-tag-score', source: 'tag', target: 'score' },
+      { id: 'e-score-end', source: 'score', target: 'end' },
     ],
   }
 }

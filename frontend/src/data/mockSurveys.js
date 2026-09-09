@@ -38,13 +38,6 @@ export const mockSurveys = [
     className: 'SKALA 3기 · A반',
     blocks: [
       {
-        id: 'score',
-        type: 'score-drag',
-        question: '이번 수업 종합 만족도를 평가해주세요',
-        min: 0,
-        max: 5,
-      },
-      {
         id: 'rank',
         type: 'card-rank',
         question: '아래 항목을 만족스러웠던 순서대로 배치해주세요',
@@ -63,13 +56,6 @@ export const mockSurveys = [
         tags: tagsFor(['assignment', 'pace', 'practice', 'communication', 'material']),
         summaryMaxLength: 100,
       },
-    ],
-  },
-  {
-    id: 'survey-db-w1',
-    courseName: '데이터베이스 설계',
-    className: 'SKALA 3기 · A반',
-    blocks: [
       {
         id: 'score',
         type: 'score-drag',
@@ -77,6 +63,13 @@ export const mockSurveys = [
         min: 0,
         max: 5,
       },
+    ],
+  },
+  {
+    id: 'survey-db-w1',
+    courseName: '데이터베이스 설계',
+    className: 'SKALA 3기 · A반',
+    blocks: [
       {
         id: 'rank',
         type: 'card-rank',
@@ -94,6 +87,13 @@ export const mockSurveys = [
         question: '이번 주 가장 크게 느낀 점을 골라주세요',
         tags: tagsFor(['assignment', 'pace', 'practice', 'material']),
         summaryMaxLength: 100,
+      },
+      {
+        id: 'score',
+        type: 'score-drag',
+        question: '이번 수업 종합 만족도를 평가해주세요',
+        min: 0,
+        max: 5,
       },
     ],
   },
