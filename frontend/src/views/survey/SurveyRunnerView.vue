@@ -62,9 +62,14 @@ function goNext() {
   <div v-else class="flex min-h-svh justify-center bg-muted/40 px-4 py-10">
     <div class="w-full max-w-lg">
       <div class="mb-6">
-        <p class="mb-2 text-xs font-medium text-muted-foreground">
-          {{ survey.className }} · {{ survey.courseName }}
-        </p>
+        <div class="mb-2 flex items-center justify-between gap-3">
+          <p class="text-xs font-medium text-muted-foreground">
+            {{ survey.className }} · {{ survey.courseName }}
+          </p>
+          <RouterLink :to="{ name: 'survey-courses' }" class="text-xs underline text-muted-foreground shrink-0">
+            강의 선택으로
+          </RouterLink>
+        </div>
         <Progress :model-value="progressPercent" class="mb-1.5" />
         <p class="text-right font-mono text-[11px] text-muted-foreground">
           {{ currentIndex + 1 }} / {{ totalBlocks }}
