@@ -3,11 +3,40 @@ import { computed, ref } from 'vue'
 import { apiFetch } from '@/lib/api'
 import { useAuthStore } from '@/stores/auth'
 
-// 블록 순서 계산을 별도 함수로 분리해둔다 — 지금은 배열 순서대로만 진행하지만,
-// 나중에 survey-branching-logic 메모리의 조건부 엣지 평가 로직으로 이 함수만
-// 교체하면 SurveyRunnerView 쪽 코드는 건드릴 필요가 없다.
-export function getNextBlockIndex(survey, currentIndex /*, answerForCurrentBlock */) {
-  return currentIndex + 1
+// survey-branching-logic 메모리의 평가 규칙 그대로: 현재 블록에서 나가는 엣지 중
+// 조건 있는 것부터 배열 순서대로(위→아래) 검사해 첫 매치를 taken, 아무것도 안 맞으면
+// 조건 없는 기본 엣지로 진행한다. 반환값이 survey.endBlockId면 제출할 차례.
+export function resolveNextBlockId(survey, currentBlockId, answer) {
+  const outgoing = survey.edges.filter((e) => e.source === currentBlockId)
+  const conditioned = outgoing.filter((e) => e.condition)
+  const fallback = outgoing.find((e) => !e.condition)
+  for (const edge of conditioned) {
+    if (matchesCondition(edge.condition, answer)) return edge.target
+  }
+  return fallback?.target ?? survey.endBlockId
+}
+
+function matchesCondition(condition, answer) {
+  if (condition.type === 'score-drag') {
+    if (typeof answer !== 'number') return false
+    const comparators = {
+      gte: (a, b) => a >= b,
+      lte: (a, b) => a <= b,
+      gt: (a, b) => a > b,
+      lt: (a, b) => a < b,
+      eq: (a, b) => a === b,
+    }
+    return comparators[condition.comparator]?.(answer, condition.value) ?? false
+  }
+  if (condition.type === 'card-rank') {
+    if (!Array.isArray(answer)) return false
+    const position = answer.indexOf(condition.itemId) + 1
+    return position >= condition.minPosition && position <= condition.maxPosition
+  }
+  if (condition.type === 'quick-tag') {
+    return Array.isArray(answer?.tagIds) && answer.tagIds.includes(condition.tagId)
+  }
+  return false
 }
 
 export const useSurveyStore = defineStore('survey', () => {

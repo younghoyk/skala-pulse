@@ -33,8 +33,8 @@ public class SurveyService {
 
 	public SurveyDetailDto getDetail(Long surveyId) {
 		Survey survey = findSurvey(surveyId);
-		List<SurveyBlockDto> blocks = surveyTemplateService.blocksForCourse(courseId(survey));
-		return SurveyDetailDto.from(survey, blocks);
+		SurveyGraphResult graph = surveyTemplateService.graphForCourse(courseId(survey));
+		return SurveyDetailDto.from(survey, graph);
 	}
 
 	@Transactional
@@ -53,8 +53,8 @@ public class SurveyService {
 			classGroup.setSubmittedCount(classGroup.getSubmittedCount() + 1);
 		}
 
-		List<SurveyBlockDto> blocks = surveyTemplateService.blocksForCourse(courseId(survey));
-		return SurveyDetailDto.from(survey, blocks);
+		SurveyGraphResult graph = surveyTemplateService.graphForCourse(courseId(survey));
+		return SurveyDetailDto.from(survey, graph);
 	}
 
 	private Survey findSurvey(Long id) {

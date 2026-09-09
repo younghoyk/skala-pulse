@@ -17,6 +17,11 @@ const courseName = computed(
   () => coursesStore.courses.find((c) => String(c.id) === courseId)?.name ?? '',
 )
 
+// 조건부 분기를 지원하는 블록 타입 — survey-branching-logic 메모리: 단답형/서술형은
+// 자유 서술이라 분기 기준이 될 수 없어서 항상 기본 연결 하나만 가질 수 있다.
+const BRANCHABLE_TYPES = ['score-drag', 'card-rank', 'quick-tag']
+const COMPARATOR_LABELS = { gte: '≥', lte: '≤', gt: '>', lt: '<', eq: '=' }
+
 function buildLabel(node) {
   if (node.data.blockType === 'end') return '종료'
   const typeLabel = blockTypeLabels[node.data.blockType]
@@ -46,6 +51,32 @@ const nodes = ref([])
 const edges = ref([])
 const loading = ref(true)
 
+// 조건 없으면 "기본(그 외)" 엣지 — 캔버스 위 표시(굵기/색/라벨)를 조건 유무에 따라 갱신한다.
+function conditionSummary(condition, sourceNode) {
+  if (!condition) return '기본'
+  if (condition.type === 'score-drag') {
+    return `점수 ${COMPARATOR_LABELS[condition.comparator] ?? condition.comparator} ${condition.value}`
+  }
+  if (condition.type === 'card-rank') {
+    const item = sourceNode?.data.items?.find((i) => i.id === condition.itemId)
+    return `${item?.label ?? '?'} ${condition.minPosition}~${condition.maxPosition}위`
+  }
+  if (condition.type === 'quick-tag') {
+    const tag = sourceNode?.data.tags?.find((t) => t.id === condition.tagId)
+    return `태그: ${tag?.label ?? '?'}`
+  }
+  return ''
+}
+
+function refreshEdgeVisual(edge) {
+  const sourceNode = nodes.value.find((n) => n.id === edge.source)
+  edge.label = conditionSummary(edge.condition, sourceNode)
+  edge.style = edge.condition
+    ? { stroke: 'var(--role-admin)', strokeWidth: 1.5 }
+    : { stroke: 'var(--muted-foreground)', strokeWidth: 1 }
+  edge.labelStyle = { fontSize: '10px', fill: edge.condition ? 'var(--role-admin)' : 'var(--muted-foreground)' }
+}
+
 // 저장된 그래프(백엔드 SurveyTemplateGraphDto: {id,type,position,data})를 VueFlow가
 // 쓰는 모양으로 변환 — end 노드만 삭제 불가로 고정한다(deletable은 서버에 저장 안 함,
 // type으로부터 매번 다시 계산).
@@ -61,7 +92,13 @@ function hydrate(graph) {
     node.style = styleFor(node)
     return node
   })
-  edges.value = graph.edges.map((e) => ({ id: e.id, source: e.source, target: e.target }))
+  edges.value = graph.edges.map((e) => ({
+    id: e.id,
+    source: e.source,
+    target: e.target,
+    condition: e.condition ?? null,
+  }))
+  edges.value.forEach(refreshEdgeVisual)
 }
 
 // 항상 빈 캔버스가 아니라 기본 시드 템플릿에서 시작한다(survey-builder-scope 메모리
@@ -103,13 +140,79 @@ function defaultDataFor(blockType) {
   }
 }
 
-// 이번 단계에서는 조건 없는 엣지 연결까지만 지원한다 — 조건부 분기 UI는 다음 단계.
+function outgoingEdgesOf(nodeId) {
+  return edges.value.filter((e) => e.source === nodeId)
+}
+
+// 새로 드래그로 연결한 엣지가 그 블록의 첫 연결이면 기본(무조건) 엣지, 이미 하나 있으면
+// 조건부 엣지 — 빈 조건 스텁을 만들어서 옆 패널에서 채우게 한다.
+function defaultConditionFor(sourceNode) {
+  const blockType = sourceNode.data.blockType
+  if (blockType === 'score-drag') return { type: 'score-drag', comparator: 'gte', value: 3 }
+  if (blockType === 'card-rank') {
+    const firstItem = sourceNode.data.items?.[0]
+    return { type: 'card-rank', itemId: firstItem?.id ?? null, minPosition: 1, maxPosition: 1 }
+  }
+  if (blockType === 'quick-tag') {
+    const firstTag = sourceNode.data.tags?.[0]
+    return { type: 'quick-tag', tagId: firstTag?.id ?? null }
+  }
+  return null
+}
+
+// target에서 시작해 기존 엣지를 따라가서 source에 도달할 수 있으면, 이 연결은 사이클을
+// 만든다 — 루프 금지(survey-branching-logic 메모리)를 캔버스에서 바로 막는다.
+function wouldCreateCycle(sourceId, targetId) {
+  const seen = new Set()
+  const stack = [targetId]
+  while (stack.length) {
+    const id = stack.pop()
+    if (id === sourceId) return true
+    if (seen.has(id)) continue
+    seen.add(id)
+    for (const e of edges.value.filter((edge) => edge.source === id)) stack.push(e.target)
+  }
+  return false
+}
+
+const connectError = ref('')
+
 function onConnect(connection) {
-  edges.value.push({
+  connectError.value = ''
+  const sourceNode = nodes.value.find((n) => n.id === connection.source)
+  if (!sourceNode) return
+
+  const existing = outgoingEdgesOf(connection.source)
+  const isBranchable = BRANCHABLE_TYPES.includes(sourceNode.data.blockType)
+  if (!isBranchable && existing.length >= 1) {
+    connectError.value = '단답형/서술형 블록은 분기(여러 연결)를 지원하지 않아요 — 기존 연결을 지우고 다시 이어주세요.'
+    return
+  }
+  if (wouldCreateCycle(connection.source, connection.target)) {
+    connectError.value = '이 연결은 순환 구조를 만들어서 추가할 수 없어요.'
+    return
+  }
+
+  const isFirst = existing.length === 0
+  const edge = {
     id: `e-${connection.source}-${connection.target}-${Date.now()}`,
     source: connection.source,
     target: connection.target,
-  })
+    condition: isFirst ? null : defaultConditionFor(sourceNode),
+  }
+  refreshEdgeVisual(edge)
+  edges.value.push(edge)
+}
+
+function removeEdge(edgeId) {
+  edges.value = edges.value.filter((e) => e.id !== edgeId)
+}
+
+function targetLabel(targetId) {
+  const node = nodes.value.find((n) => n.id === targetId)
+  if (!node) return '?'
+  if (node.data.blockType === 'end') return '종료(제출)'
+  return node.data.question || blockTypeLabels[node.data.blockType]
 }
 
 function addNode(blockType) {
@@ -144,15 +247,16 @@ function removeTag(node, index) {
   node.data.tags.splice(index, 1)
 }
 
-// nodes/edges를 백엔드 SurveyTemplateGraphDto 모양({id,type,position,data})으로 되돌린다 —
-// blockType은 data 안이 아니라 node.type으로, label/style(VueFlow 렌더용 파생값)은 뺀다.
+// nodes/edges를 백엔드 SurveyTemplateGraphDto 모양({id,type,position,data}/
+// {id,source,target,condition})으로 되돌린다 — blockType은 data 안이 아니라 node.type으로,
+// label/style/labelStyle(VueFlow 렌더용 파생값)은 뺀다.
 function toStoredGraph() {
   return {
     nodes: nodes.value.map((n) => {
       const { blockType, ...data } = n.data
       return { id: n.id, type: blockType, position: n.position, data }
     }),
-    edges: edges.value.map((e) => ({ id: e.id, source: e.source, target: e.target })),
+    edges: edges.value.map((e) => ({ id: e.id, source: e.source, target: e.target, condition: e.condition ?? null })),
   }
 }
 
@@ -217,13 +321,14 @@ async function save() {
             </Button>
           </div>
         </div>
+        <p v-if="connectError" class="mb-2 text-xs font-medium" style="color: var(--danger)">{{ connectError }}</p>
 
         <div class="grid grid-cols-1 gap-4 md:grid-cols-[1fr_280px]">
           <div class="overflow-hidden rounded-xl border border-border bg-card" style="height: 480px">
             <VueFlow v-model:nodes="nodes" v-model:edges="edges" fit-view-on-init @connect="onConnect" @node-click="onNodeClick" />
           </div>
 
-          <div class="rounded-xl border border-border bg-card p-4">
+          <div class="rounded-xl border border-border bg-card p-4" style="max-height: 480px; overflow-y: auto">
             <template v-if="selectedNode">
               <p class="mb-3 text-xs font-semibold" :style="{ color: blockTypeColors[selectedNode.data.blockType].border }">
                 {{ blockTypeLabels[selectedNode.data.blockType] }}
@@ -264,6 +369,94 @@ async function save() {
                   </button>
                 </template>
 
+                <div class="mt-4 border-t border-border pt-3">
+                  <label class="mb-1.5 block text-xs font-medium text-muted-foreground">다음으로 연결</label>
+
+                  <div
+                    v-for="edge in outgoingEdgesOf(selectedNode.id)"
+                    :key="edge.id"
+                    class="mb-2 rounded-md border border-border p-2"
+                  >
+                    <div class="mb-1 flex items-center justify-between">
+                      <span
+                        class="text-[11px] font-semibold"
+                        :style="{ color: edge.condition ? 'var(--role-admin)' : 'var(--muted-foreground)' }"
+                      >
+                        {{ edge.condition ? '조건부' : '기본(그 외)' }}
+                      </span>
+                      <button type="button" class="text-xs text-muted-foreground hover:text-foreground" @click="removeEdge(edge.id)">
+                        ✕
+                      </button>
+                    </div>
+
+                    <div v-if="edge.condition?.type === 'score-drag'" class="flex flex-wrap items-center gap-1.5 text-xs">
+                      <span>점수</span>
+                      <select
+                        v-model="edge.condition.comparator"
+                        class="rounded border border-border px-1 py-0.5 text-xs"
+                        @change="refreshEdgeVisual(edge)"
+                      >
+                        <option value="gte">≥</option>
+                        <option value="lte">≤</option>
+                        <option value="gt">&gt;</option>
+                        <option value="lt">&lt;</option>
+                        <option value="eq">=</option>
+                      </select>
+                      <input
+                        v-model.number="edge.condition.value"
+                        type="number"
+                        step="0.1"
+                        class="w-16 rounded border border-border px-1 py-0.5 text-xs"
+                        @input="refreshEdgeVisual(edge)"
+                      />
+                    </div>
+
+                    <div v-else-if="edge.condition?.type === 'card-rank'" class="flex flex-wrap items-center gap-1.5 text-xs">
+                      <select
+                        v-model="edge.condition.itemId"
+                        class="rounded border border-border px-1 py-0.5 text-xs"
+                        @change="refreshEdgeVisual(edge)"
+                      >
+                        <option v-for="item in selectedNode.data.items" :key="item.id" :value="item.id">{{ item.label }}</option>
+                      </select>
+                      <span>순위</span>
+                      <input
+                        v-model.number="edge.condition.minPosition"
+                        type="number"
+                        min="1"
+                        :max="selectedNode.data.items.length"
+                        class="w-12 rounded border border-border px-1 py-0.5 text-xs"
+                        @input="refreshEdgeVisual(edge)"
+                      />
+                      <span>~</span>
+                      <input
+                        v-model.number="edge.condition.maxPosition"
+                        type="number"
+                        min="1"
+                        :max="selectedNode.data.items.length"
+                        class="w-12 rounded border border-border px-1 py-0.5 text-xs"
+                        @input="refreshEdgeVisual(edge)"
+                      />
+                      <span>위</span>
+                    </div>
+
+                    <select
+                      v-else-if="edge.condition?.type === 'quick-tag'"
+                      v-model="edge.condition.tagId"
+                      class="w-full rounded border border-border px-1 py-0.5 text-xs"
+                      @change="refreshEdgeVisual(edge)"
+                    >
+                      <option v-for="tag in selectedNode.data.tags" :key="tag.id" :value="tag.id">{{ tag.label }}</option>
+                    </select>
+
+                    <p class="mt-1 text-[11px] text-muted-foreground">→ {{ targetLabel(edge.target) }}</p>
+                  </div>
+
+                  <p v-if="!outgoingEdgesOf(selectedNode.id).length" class="text-[11px] text-muted-foreground">
+                    캔버스에서 이 블록을 다른 블록으로 드래그해 연결하세요.
+                  </p>
+                </div>
+
                 <Button size="sm" variant="outline" class="mt-4 w-full" @click="deleteNode(selectedNode.id)">이 블록 삭제</Button>
               </template>
               <p v-else class="text-xs text-muted-foreground">설문이 끝나는 지점이에요. 삭제할 수 없어요.</p>
@@ -273,7 +466,8 @@ async function save() {
         </div>
 
         <p class="mt-3 text-xs text-muted-foreground">
-          블록의 연결점을 드래그해서 다른 블록에 이으면 순서가 바뀝니다. 조건부 분기는 다음 단계에서 추가돼요.
+          블록의 연결점을 드래그해서 다른 블록에 이으면 새 연결이 생겨요 — 첫 연결은 기본, 그다음부터는 조건부 분기예요
+          (단답형/서술형 제외). 모든 블록은 조건 없는 기본 연결이 하나 있어야 저장할 수 있어요.
         </p>
       </template>
     </div>

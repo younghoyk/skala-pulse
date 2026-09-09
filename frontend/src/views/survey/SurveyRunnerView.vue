@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useSurveyStore, getNextBlockIndex } from '@/stores/survey'
+import { useSurveyStore, resolveNextBlockId } from '@/stores/survey'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import ScoreDragBlock from '@/components/survey/ScoreDragBlock.vue'
@@ -17,17 +17,20 @@ const surveyStore = useSurveyStore()
 const survey = ref(null)
 const loading = ref(true)
 
-const currentIndex = ref(0)
+// 분기 때문에 실제 경로 길이가 미리 정해지지 않아서(사람마다 다름) "다음 인덱스"가 아니라
+// "다음 블록 id"로 진행한다 — 방문 순서를 스택처럼 쌓아두고 뒤로가기는 그냥 pop.
+const visited = ref([])
 const answers = reactive({})
 
 async function load() {
   loading.value = true
-  currentIndex.value = 0
   Object.keys(answers).forEach((key) => delete answers[key])
   try {
     survey.value = await surveyStore.loadSurveyDetail(props.id)
+    visited.value = survey.value ? [survey.value.startBlockId] : []
   } catch {
     survey.value = null
+    visited.value = []
   } finally {
     loading.value = false
   }
@@ -37,29 +40,36 @@ onMounted(load)
 // 라우트가 바뀌면(다음 설문으로 이동) 새로 불러온다.
 watch(() => props.id, load)
 
-const currentBlock = computed(() => survey.value?.blocks[currentIndex.value] ?? null)
+const currentBlockId = computed(() => visited.value[visited.value.length - 1] ?? null)
+const currentBlock = computed(() => survey.value?.blocks.find((b) => b.id === currentBlockId.value) ?? null)
 const totalBlocks = computed(() => survey.value?.blocks.length ?? 0)
-const progressPercent = computed(() =>
-  totalBlocks.value ? ((currentIndex.value + 1) / totalBlocks.value) * 100 : 0,
-)
-const isLastBlock = computed(() => currentIndex.value === totalBlocks.value - 1)
+// 분기로 실제 경로가 전체 블록 수보다 짧아질 수 있어서(건너뛴 블록만큼) 100%를 못 채우고
+// 제출될 수 있다 — "지금까지 방문한 스텝 수 / 전체 블록 수"로의 근사, 폼 서비스에서 흔한 방식.
+const progressPercent = computed(() => (totalBlocks.value ? (visited.value.length / totalBlocks.value) * 100 : 0))
+// 지금 블록에서 지금 답변으로 "다음"을 누르면 바로 제출인지 미리 계산 — 버튼 라벨용.
+const willSubmitNext = computed(() => {
+  if (!survey.value || !currentBlock.value) return false
+  const next = resolveNextBlockId(survey.value, currentBlock.value.id, answers[currentBlock.value.id])
+  return next === survey.value.endBlockId
+})
 
 function setAnswer(blockId, value) {
   answers[blockId] = value
 }
 
 function goBack() {
-  if (currentIndex.value > 0) currentIndex.value -= 1
+  if (visited.value.length > 1) visited.value.pop()
 }
 
 async function goNext() {
-  if (!survey.value) return
-  if (isLastBlock.value) {
+  if (!survey.value || !currentBlock.value) return
+  const nextId = resolveNextBlockId(survey.value, currentBlock.value.id, answers[currentBlock.value.id])
+  if (nextId === survey.value.endBlockId) {
     await surveyStore.submitSurvey(survey.value.id, { ...answers })
     router.push({ name: 'survey-complete' })
     return
   }
-  currentIndex.value = getNextBlockIndex(survey.value, currentIndex.value, answers[currentBlock.value.id])
+  visited.value.push(nextId)
 }
 </script>
 
@@ -87,7 +97,7 @@ async function goNext() {
         </div>
         <Progress :model-value="progressPercent" class="mb-1.5" />
         <p class="text-right font-mono text-[11px] text-muted-foreground">
-          {{ currentIndex + 1 }} / {{ totalBlocks }}
+          {{ visited.length }} / {{ totalBlocks }}
         </p>
       </div>
 
@@ -135,9 +145,9 @@ async function goNext() {
       </div>
 
       <div class="mt-5 flex justify-between">
-        <Button variant="ghost" :disabled="currentIndex === 0" @click="goBack">이전</Button>
+        <Button variant="ghost" :disabled="visited.length === 1" @click="goBack">이전</Button>
         <Button style="background: var(--role-student)" class="text-white hover:opacity-90" @click="goNext">
-          {{ isLastBlock ? '제출하기' : '다음' }}
+          {{ willSubmitNext ? '제출하기' : '다음' }}
         </Button>
       </div>
     </div>
