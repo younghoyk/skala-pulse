@@ -17,7 +17,7 @@ function handleLogout() {
 
 <template>
   <header class="sticky top-0 z-10 flex items-center justify-between bg-card/90 px-5 py-2.5 shadow-sm backdrop-blur-sm">
-    <img src="/skala-logo.png" alt="SKALA" class="h-6 w-auto" />
+    <img src="/skala-logo-v2.png" alt="SKALA" class="h-6 w-auto" />
 
     <div v-if="auth.role" class="flex items-center gap-3">
       <span

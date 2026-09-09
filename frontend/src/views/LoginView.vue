@@ -56,7 +56,6 @@ function handleDemoLogin(role) {
 <template>
   <div class="flex min-h-svh items-center justify-center bg-muted/40 px-4">
     <div class="w-full max-w-md">
-      <img src="/skala-logo.png" alt="SKALA" class="mb-6 w-full shadow-lg" />
       <p class="mb-1 text-xs font-medium tracking-wide text-muted-foreground">
         SKALA 교육 피드백 &amp; 원인 진단 서비스
       </p>
