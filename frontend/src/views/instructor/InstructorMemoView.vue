@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useInstructorCourseStore } from '@/stores/instructorCourse'
 import { mockInstructorCourses } from '@/data/mockInstructorData'
 import InstructorNav from '@/components/instructor/InstructorNav.vue'
+import PageHeader from '@/components/PageHeader.vue'
 import ActionMemoCard from '@/components/dashboard/ActionMemoCard.vue'
 
 const router = useRouter()
@@ -19,13 +20,13 @@ onMounted(() => {
 <template>
   <div v-if="data" class="min-h-svh bg-muted/40 px-4 py-10">
     <div class="mx-auto max-w-3xl">
-      <div class="mb-4">
-        <p class="text-xs font-medium text-muted-foreground">{{ data.className }}</p>
-        <h1 class="text-xl font-bold text-foreground">{{ data.courseName }} · 액션 메모</h1>
-        <RouterLink :to="{ name: 'instructor-courses' }" class="text-xs underline" style="color: var(--role-instructor)">
-          다른 강의 선택
-        </RouterLink>
-      </div>
+      <PageHeader
+        :eyebrow="data.className"
+        :title="`${data.courseName} · 액션 메모`"
+        :back-to="{ name: 'instructor-courses' }"
+        back-label="다른 강의 선택"
+        accent-var="--role-instructor"
+      />
 
       <InstructorNav active="memo" />
 

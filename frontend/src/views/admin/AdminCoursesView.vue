@@ -1,6 +1,7 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import AdminTopNav from '@/components/admin/AdminTopNav.vue'
+import PageHeader from '@/components/PageHeader.vue'
 import { mockCourseManagement, instructorOptions, labInstructorFor } from '@/data/mockAdminCourseManagement'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -71,16 +72,15 @@ function deleteCourse(courseId) {
 <template>
   <div class="min-h-svh bg-muted/40 px-4 py-10">
     <div class="mx-auto max-w-2xl">
-      <div class="mb-1 flex items-start justify-between gap-3">
-        <div>
-          <p class="text-xs font-medium text-muted-foreground">시스템 관리자</p>
-          <h1 class="text-xl font-bold text-foreground">과정 관리</h1>
-        </div>
-        <Button size="sm" variant="outline" @click="showNewCourseForm = !showNewCourseForm">+ 새 과정 추가</Button>
-      </div>
-      <p class="mb-5 text-xs text-muted-foreground">
-        전임교수는 과목 단위(모든 반 공통), 실습교수는 반 단위입니다. 직강 반은 전임교수가 실습도 겸해요.
-      </p>
+      <PageHeader
+        eyebrow="시스템 관리자"
+        title="과정 관리"
+        description="전임교수는 과목 단위(모든 반 공통), 실습교수는 반 단위입니다. 직강 반은 전임교수가 실습도 겸해요."
+      >
+        <template #actions>
+          <Button size="sm" variant="outline" @click="showNewCourseForm = !showNewCourseForm">+ 새 과정 추가</Button>
+        </template>
+      </PageHeader>
 
       <AdminTopNav active="courses" />
 

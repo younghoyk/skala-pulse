@@ -2,6 +2,7 @@
 import { roleLabels } from '@/data/mockAdminMembers'
 import { useMembersStore } from '@/stores/members'
 import AdminTopNav from '@/components/admin/AdminTopNav.vue'
+import PageHeader from '@/components/PageHeader.vue'
 
 const store = useMembersStore()
 const { pending, members } = store
@@ -15,11 +16,7 @@ function deleteMember(member) {
 <template>
   <div class="min-h-svh bg-muted/40 px-4 py-10">
     <div class="mx-auto max-w-2xl">
-      <div class="mb-1">
-        <p class="text-xs font-medium text-muted-foreground">시스템 관리자</p>
-        <h1 class="text-xl font-bold text-foreground">회원 관리</h1>
-      </div>
-      <p class="mb-5 text-xs text-muted-foreground">가입 승인과 계정별 권한을 관리합니다.</p>
+      <PageHeader eyebrow="시스템 관리자" title="회원 관리" description="가입 승인과 계정별 권한을 관리합니다." />
 
       <AdminTopNav active="members" />
 

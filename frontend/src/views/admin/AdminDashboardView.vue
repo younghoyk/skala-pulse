@@ -2,6 +2,7 @@
 import { useRouter } from 'vue-router'
 import { groupClassesByCourse } from '@/data/mockAdminOverview'
 import AdminTopNav from '@/components/admin/AdminTopNav.vue'
+import PageHeader from '@/components/PageHeader.vue'
 
 const router = useRouter()
 const courses = groupClassesByCourse()
@@ -14,11 +15,11 @@ function openCourse(courseId) {
 <template>
   <div class="min-h-svh bg-muted/40 px-4 py-10">
     <div class="mx-auto max-w-3xl">
-      <div class="mb-1">
-        <p class="text-xs font-medium text-muted-foreground">시스템 관리자</p>
-        <h1 class="text-xl font-bold text-foreground">전체 과정 통합 대시보드</h1>
-      </div>
-      <p class="mb-5 text-xs text-muted-foreground">강의를 선택하면 그 안의 반들을 비교할 수 있습니다.</p>
+      <PageHeader
+        eyebrow="시스템 관리자"
+        title="전체 과정 통합 대시보드"
+        description="강의를 선택하면 그 안의 반들을 비교할 수 있습니다."
+      />
 
       <AdminTopNav active="dashboard" />
 

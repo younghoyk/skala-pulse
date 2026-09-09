@@ -7,6 +7,7 @@ import { mockInstructorCourses } from '@/data/mockInstructorData'
 import ScoreBarsCard from '@/components/dashboard/ScoreBarsCard.vue'
 import RankLeaderboardCard from '@/components/dashboard/RankLeaderboardCard.vue'
 import InstructorNav from '@/components/instructor/InstructorNav.vue'
+import PageHeader from '@/components/PageHeader.vue'
 
 const router = useRouter()
 const courseStore = useInstructorCourseStore()
@@ -43,18 +44,19 @@ onMounted(() => {
 <template>
   <div v-if="data" class="min-h-svh bg-muted/40 px-4 py-10">
     <div class="mx-auto max-w-3xl">
-      <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <p class="text-xs font-medium text-muted-foreground">{{ data.className }}</p>
-          <h1 class="text-xl font-bold text-foreground">{{ data.courseName }} · 대시보드</h1>
-          <RouterLink :to="{ name: 'instructor-courses' }" class="text-xs underline" style="color: var(--role-instructor)">
-            다른 강의 선택
-          </RouterLink>
-        </div>
-        <Badge variant="secondary" class="text-xs">
-          제출 현황 {{ data.submission.submitted }}명 / {{ data.submission.total }}명
-        </Badge>
-      </div>
+      <PageHeader
+        :eyebrow="data.className"
+        :title="`${data.courseName} · 대시보드`"
+        :back-to="{ name: 'instructor-courses' }"
+        back-label="다른 강의 선택"
+        accent-var="--role-instructor"
+      >
+        <template #actions>
+          <Badge variant="secondary" class="text-xs">
+            제출 현황 {{ data.submission.submitted }}명 / {{ data.submission.total }}명
+          </Badge>
+        </template>
+      </PageHeader>
 
       <InstructorNav active="dashboard" />
 

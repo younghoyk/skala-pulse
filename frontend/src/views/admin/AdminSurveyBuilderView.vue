@@ -11,6 +11,7 @@ import {
   blockTypeLabels,
 } from '@/data/mockSurveyTemplates'
 import AdminCourseNav from '@/components/admin/AdminCourseNav.vue'
+import PageHeader from '@/components/PageHeader.vue'
 import { Button } from '@/components/ui/button'
 
 const route = useRoute()
@@ -137,13 +138,12 @@ function save() {
 <template>
   <div class="min-h-svh bg-muted/40 px-4 py-10">
     <div class="mx-auto max-w-5xl">
-      <div class="mb-5">
-        <p class="text-xs font-medium text-muted-foreground">시스템 관리자</p>
-        <h1 class="text-xl font-bold text-foreground">{{ courseName }}</h1>
-        <RouterLink :to="{ name: 'admin-dashboard' }" class="text-xs underline" style="color: var(--role-admin)">
-          전체 강의 목록으로
-        </RouterLink>
-      </div>
+      <PageHeader
+        eyebrow="시스템 관리자"
+        :title="courseName"
+        :back-to="{ name: 'admin-dashboard' }"
+        back-label="전체 강의 목록으로"
+      />
 
       <AdminCourseNav :course-id="courseId" active="builder" />
 

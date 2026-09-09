@@ -1,6 +1,7 @@
 <script setup>
 import { computed, reactive } from 'vue'
 import AdminTopNav from '@/components/admin/AdminTopNav.vue'
+import PageHeader from '@/components/PageHeader.vue'
 import { mockPendingImprovements } from '@/data/mockAdminImprovements'
 
 const tasks = reactive([...mockPendingImprovements])
@@ -25,11 +26,11 @@ const groupedByCourse = computed(() => {
 <template>
   <div class="min-h-svh bg-muted/40 px-4 py-10">
     <div class="mx-auto max-w-2xl">
-      <div class="mb-1">
-        <p class="text-xs font-medium text-muted-foreground">시스템 관리자</p>
-        <h1 class="text-xl font-bold text-foreground">개선 과제</h1>
-      </div>
-      <p class="mb-5 text-xs text-muted-foreground">과목별 개선 과제 — 체크하면 완료 처리됩니다.</p>
+      <PageHeader
+        eyebrow="시스템 관리자"
+        title="개선 과제"
+        description="과목별 개선 과제 — 체크하면 완료 처리됩니다."
+      />
 
       <AdminTopNav active="improvements" />
 

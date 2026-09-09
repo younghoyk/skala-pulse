@@ -5,6 +5,7 @@ import { mockAdminClasses, aggregateRankItems } from '@/data/mockAdminOverview'
 import ScoreBarsCard from '@/components/dashboard/ScoreBarsCard.vue'
 import RankLeaderboardCard from '@/components/dashboard/RankLeaderboardCard.vue'
 import AdminCourseNav from '@/components/admin/AdminCourseNav.vue'
+import PageHeader from '@/components/PageHeader.vue'
 
 const route = useRoute()
 
@@ -52,13 +53,12 @@ const courseRankItems = computed(() => aggregateRankItems(classes.value))
 <template>
   <div class="min-h-svh bg-muted/40 px-4 py-10">
     <div class="mx-auto max-w-3xl">
-      <div class="mb-5">
-        <p class="text-xs font-medium text-muted-foreground">시스템 관리자</p>
-        <h1 class="text-xl font-bold text-foreground">{{ courseName }}</h1>
-        <RouterLink :to="{ name: 'admin-dashboard' }" class="text-xs underline" style="color: var(--role-admin)">
-          전체 강의 목록으로
-        </RouterLink>
-      </div>
+      <PageHeader
+        eyebrow="시스템 관리자"
+        :title="courseName"
+        :back-to="{ name: 'admin-dashboard' }"
+        back-label="전체 강의 목록으로"
+      />
 
       <AdminCourseNav :course-id="route.params.courseId" active="dashboard" />
 

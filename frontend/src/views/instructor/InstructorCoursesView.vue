@@ -2,6 +2,7 @@
 import { useRouter } from 'vue-router'
 import { useInstructorCourseStore } from '@/stores/instructorCourse'
 import { mockInstructorCourses } from '@/data/mockInstructorData'
+import PageHeader from '@/components/PageHeader.vue'
 
 const router = useRouter()
 const courseStore = useInstructorCourseStore()
@@ -23,9 +24,12 @@ const roleLabel = { lead: '전임교수', lab: '실습교수' }
 <template>
   <div class="flex min-h-svh justify-center bg-muted/40 px-4 py-10">
     <div class="w-full max-w-md">
-      <p class="mb-1 text-xs font-medium text-muted-foreground">교수자 / 매니저</p>
-      <h1 class="mb-1 text-xl font-bold text-foreground">담당 강의를 선택해주세요</h1>
-      <p class="mb-6 text-sm text-muted-foreground">여러 강의를 담당 중이면 강의별로 대시보드가 따로 표시돼요.</p>
+      <PageHeader
+        eyebrow="교수자 / 매니저"
+        title="담당 강의를 선택해주세요"
+        description="여러 강의를 담당 중이면 강의별로 대시보드가 따로 표시돼요."
+        accent-var="--role-instructor"
+      />
 
       <div class="flex flex-col gap-3">
         <button
